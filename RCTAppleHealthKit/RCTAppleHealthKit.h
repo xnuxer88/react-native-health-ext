@@ -8,8 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import <HealthKit/HealthKit.h>
-#import <React/RCTEventEmitter.h>
+
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 #import <React/RCTUtils.h>
 #import <React/RCTLog.h>
 #import <React/RCTEventDispatcher.h>
@@ -25,7 +26,6 @@
 - (void)checkPermission:(NSString *)input callback:(RCTResponseSenderBlock)callback;
 - (void)getModuleInfo:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
 - (void)getAuthorizationStatus:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
-
 - (void)initializeBackgroundObservers:(RCTBridge *)bridge;
 
 @end

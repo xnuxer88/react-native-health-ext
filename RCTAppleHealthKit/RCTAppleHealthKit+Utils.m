@@ -41,7 +41,7 @@
     } @catch (NSException *exception) {
         NSLog(@"RNHealth: An error occured while trying parse ISO8601 string from date");
         return nil;
-    }
+    }   
 }
 
 
