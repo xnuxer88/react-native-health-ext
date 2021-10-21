@@ -24,6 +24,7 @@
 + (NSDate *)endDateFromOptions:(NSDictionary *)options;
 + (NSDate *)endDateFromOptionsDefaultNow:(NSDictionary *)options;
 + (HKSampleType *)quantityTypeFromName:(NSString *)type;
++ (HKSampleType *)clinicalTypeFromName:(NSString *)type;
 + (HKQueryAnchor *)hkAnchorFromOptions:(NSDictionary *)options;
 + (HKUnit *)hkUnitFromOptions:(NSDictionary *)options key:(NSString *)key withDefault:(HKUnit *)defaultValue;
 + (NSUInteger)uintFromOptions:(NSDictionary *)options key:(NSString *)key withDefault:(NSUInteger)defaultValue;
@@ -37,4 +38,8 @@
 + (NSMutableArray *)reverseNSMutableArray:(NSMutableArray *)array;
 + (NSString*) stringForHKWorkoutActivityType:(int) enumValue;
 
++ (HKWorkout *) hkWorkoutFromOptions: (NSDictionary *)options;
++ (HKWorkoutRoute *) hkWorkoutRouteFromOptions: (NSDictionary *)options API_AVAILABLE(ios(11));
+
++ (NSDictionary *) serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *>*)locations;
 @end
