@@ -291,6 +291,6 @@ for some tips on getting started.
 
 ## Acknowledgement
 
-> _This package is a fork of [rn-apple-healthkit](https://github.com/terrillo/rn-apple-healthkit)_
+> _This package is a fork of [rn-apple-healthkit](https://github.com/agencyenterprise/react-native-healthkit)_
 
 > _This package also inherits additional features from [Nutrisense](https://www.nutrisense.io/) fork_
