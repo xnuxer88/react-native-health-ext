@@ -1,6 +1,6 @@
 {
-  "name": "react-native-health",
-  "version": "1.8.0",
+  "name": "react-native-health-ext",
+  "version": "1.0.0",
   "description": "A React Native package to interact with Apple HealthKit",
   "main": "index.js",
   "repository": {
@@ -29,5 +29,14 @@
   },
   "dependencies": {
     "@expo/config-plugins": "^2.0.0"
-  }
+  },
+  "homepage": "https://github.com/agencyenterprise/react-native-healthkit#readme",
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Heru"
 }
