@@ -1059,36 +1059,36 @@
                       predicate:(NSPredicate *)predicate
                          anchor:(HKQueryAnchor *)anchor
                           limit:(NSUInteger)lim
-                     completion:(void (^)(NSArray<HKWorkout *> *workouts, NSError *error))completion {
+                     completion:(void (^)(NSArray<HKWorkout *> *workouts, HKQueryAnchor * _Nullable newAnchor, NSError *error))completion {
     HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc] initWithType:type
                                                                      predicate:predicate
                                                                         anchor:anchor
                                                                          limit:lim
                                                                 resultsHandler:^(HKAnchoredObjectQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable samples, NSArray<HKDeletedObject *> * _Nullable deletedObjects, HKQueryAnchor * _Nullable newAnchor, NSError * _Nullable error) {
         if (error && completion) {
-            completion(nil, error);
+            completion(nil, newAnchor, error);
             return;
         } else if (!samples){
-            completion([NSArray array], nil);
+            completion([NSArray array], newAnchor, nil);
             return;
         }
         
-        completion(samples, nil);
+        completion(samples, newAnchor, nil);
     }];
 
     [self.healthStore executeQuery:query];
 }
 
 - (void)fetchWorkoutRouteHealthStore:(HKWorkout *)workoutSample
+                                anchor:(nullable HKQueryAnchor *)newAnchor
                           completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion {
     NSPredicate *runningQuery = [HKQuery predicateForObjectsFromWorkout:workoutSample];
     
-    HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc]
-                                    initWithType:[HKSeriesType workoutRouteType]
-                                    predicate:runningQuery
-                                    anchor:nil
-                                    limit:HKObjectQueryNoLimit
-                                    resultsHandler:^(HKAnchoredObjectQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSArray<HKDeletedObject *> * _Nullable deletedObjects, HKQueryAnchor * _Nullable newAnchor, NSError * _Nullable error) {
+    HKSampleQuery *query =  [[HKSampleQuery alloc] initWithSampleType:[HKSeriesType workoutRouteType]
+                                                                    predicate:runningQuery
+                                                                        limit:HKObjectQueryNoLimit
+                                                              sortDescriptors:nil
+                                                               resultsHandler:^(HKSampleQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSError * _Nullable error) {
         
         if (error && completion) {
             completion(nil, error);
@@ -1110,7 +1110,9 @@
                 }
                 return;
             }
-            [routeLocations addObjectsFromArray:routeData];
+            if (routeData != nil) {
+                [routeLocations addObjectsFromArray:routeData];
+            }
             
             if (done) {
                 completion(routeLocations, nil);
@@ -1132,7 +1134,7 @@
                  predicate:predicate
                     anchor:anchor
                      limit:lim
-                completion:^(NSArray<HKWorkout *> *workouts, NSError *error) {
+                completion:^(NSArray<HKWorkout *> *workouts, HKQueryAnchor * _Nullable newAnchor, NSError *error) {
         if (error) {
             NSLog(@"[fetchAllWorkoutLocations] error: %@", error.localizedDescription);
             completion(nil, error);
@@ -1148,7 +1150,7 @@
         
         __block NSUInteger tally = 0;
         for (HKWorkout *workout in workouts) {
-            [self fetchWorkoutRouteHealthStore:workout
+            [self fetchWorkoutRouteHealthStore:workout anchor:newAnchor
                 completion:^(NSArray<CLLocation *> *locations, NSError *error) {
                 NSLog(@"[fetchWorkoutRouteHealthStore]");
                 tally += 1;

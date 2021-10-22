@@ -111,14 +111,15 @@
                       completion:(void (^)(NSDictionary *, NSError *))completion;
 
 - (void)fetchWorkoutRouteHealthStore: (HKWorkout *)workout
-                          completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion;
+                         anchor:(nullable HKQueryAnchor*) newAnchor
+                    completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion;
 
 
 - (void)fetchWorkoutsHealthStore: (HKSampleType *)type
                                 predicate:(NSPredicate *)predicate
                                    anchor:(HKQueryAnchor *)anchor
                                     limit:(NSUInteger)lim
-                                completion:(void (^)(NSArray<HKWorkout *> *workouts, NSError *error))completion;
+                                completion:(void (^)(NSArray<HKWorkout *> *workouts, HKQueryAnchor * _Nullable newAnchor, NSError *error))completion;
 
 
 /*@yulianto.kevin end*/
