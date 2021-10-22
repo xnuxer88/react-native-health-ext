@@ -1082,12 +1082,16 @@
 - (void)fetchWorkoutRouteHealthStore:(HKWorkout *)workoutSample
                                 anchor:(nullable HKQueryAnchor *)newAnchor
                           completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion {
+    NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc]
+            initWithKey:HKSampleSortIdentifierStartDate
+              ascending:YES
+    ];
     NSPredicate *runningQuery = [HKQuery predicateForObjectsFromWorkout:workoutSample];
     
     HKSampleQuery *query =  [[HKSampleQuery alloc] initWithSampleType:[HKSeriesType workoutRouteType]
                                                                     predicate:runningQuery
                                                                         limit:HKObjectQueryNoLimit
-                                                              sortDescriptors:nil
+                                                              sortDescriptors:@[timeSortDescriptor]
                                                                resultsHandler:^(HKSampleQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSError * _Nullable error) {
         
         if (error && completion) {
