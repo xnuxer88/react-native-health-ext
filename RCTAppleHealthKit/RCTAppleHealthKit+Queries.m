@@ -1080,19 +1080,15 @@
 }
 
 - (void)fetchWorkoutRouteHealthStore:(HKWorkout *)workoutSample
-                                anchor:(nullable HKQueryAnchor *)newAnchor
                           completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion {
-    NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc]
-            initWithKey:HKSampleSortIdentifierStartDate
-              ascending:YES
-    ];
     NSPredicate *runningQuery = [HKQuery predicateForObjectsFromWorkout:workoutSample];
     
-    HKSampleQuery *query =  [[HKSampleQuery alloc] initWithSampleType:[HKSeriesType workoutRouteType]
-                                                                    predicate:runningQuery
-                                                                        limit:HKObjectQueryNoLimit
-                                                              sortDescriptors:@[timeSortDescriptor]
-                                                               resultsHandler:^(HKSampleQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSError * _Nullable error) {
+    HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc]
+                                    initWithType:[HKSeriesType workoutRouteType]
+                                    predicate:runningQuery
+                                    anchor:nil
+                                    limit:HKObjectQueryNoLimit
+                                    resultsHandler:^(HKAnchoredObjectQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSArray<HKDeletedObject *> * _Nullable deletedObjects, HKQueryAnchor * _Nullable newAnchor, NSError * _Nullable error) {
         
         if (error && completion) {
             completion(nil, error);
@@ -1154,7 +1150,7 @@
         
         __block NSUInteger tally = 0;
         for (HKWorkout *workout in workouts) {
-            [self fetchWorkoutRouteHealthStore:workout anchor:newAnchor
+            [self fetchWorkoutRouteHealthStore:workout
                 completion:^(NSArray<CLLocation *> *locations, NSError *error) {
                 NSLog(@"[fetchWorkoutRouteHealthStore]");
                 tally += 1;

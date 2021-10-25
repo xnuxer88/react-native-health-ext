@@ -111,7 +111,6 @@
                       completion:(void (^)(NSDictionary *, NSError *))completion;
 
 - (void)fetchWorkoutRouteHealthStore: (HKWorkout *)workout
-                         anchor:(nullable HKQueryAnchor*) newAnchor
                     completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion;
 
 
