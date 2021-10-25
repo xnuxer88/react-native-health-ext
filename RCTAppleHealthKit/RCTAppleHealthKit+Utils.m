@@ -595,17 +595,13 @@
 
 + (NSDictionary *)serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *> *)locations {
     NSMutableDictionary *fullSerializedDictionary = [NSMutableDictionary new];
-    if(workoutSample.totalDistance){
-        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
-        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalDistance"];
-    }
-    if(workoutSample.totalEnergyBurned){
-        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalEnergyBurned doubleValueForUnit:[HKUnit unitFromString:@"kcal"]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
-    }
-     
-    if(workoutSample.duration >= 0){
-        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
-    }
+    
+    NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
+    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalDistance"];
+
+    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalEnergyBurned doubleValueForUnit:[HKUnit unitFromString:@"kcal"]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
+    
+    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
      
      NSNumber *isTracked = @YES; // or [NSNumber numberWithBool:YES] the old way
      if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
@@ -637,7 +633,7 @@
          }
      }
      
-     if (workoutSample.workoutEvents) {
+     if (workoutSample.workoutEvents != nil) {
          NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
          for (HKWorkoutEvent *event in workoutSample.workoutEvents) {
              NSDictionary *elem = nil;
