@@ -1148,6 +1148,8 @@
             return;
         }
         
+        NSMutableArray *results = [NSMutableArray arrayWithCapacity:1];
+        
         __block NSUInteger tally = 0;
         for (HKWorkout *workout in workouts) {
             [self fetchWorkoutRouteHealthStore:workout
@@ -1156,13 +1158,14 @@
                 tally += 1;
                 if (error) {
                     if (tally == [workouts count]) {
-                        completion(@{@"data": [RCTAppleHealthKit serializeWorkoutRouteLocations:workout locations:locations] }, nil);
+                        completion(@{@"data": results}, nil);
                     }
                     return;
                 }
                 
+                [results addObject:[RCTAppleHealthKit serializeWorkoutRouteLocations:workout locations:locations]];
                 if (tally == [workouts count]) {
-                    completion(@{@"data": [RCTAppleHealthKit serializeWorkoutRouteLocations:workout locations:locations] }, error);
+                    completion(@{@"data": results }, error);
                 }
             }];
         }
