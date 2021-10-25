@@ -704,6 +704,7 @@
     }
     
     [fullSerializedDictionary addEntriesFromDictionary:@{
+        @"id": [[workoutSample UUID] UUIDString],
         @"startDateTime" : startDateString,
         @"endDateTime" : endDateString,
         @"activityName": type,
