@@ -595,11 +595,19 @@
 
 + (NSDictionary *)serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *> *)locations {
     NSMutableDictionary *fullSerializedDictionary = [NSMutableDictionary new];
+    NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
+    if ([workoutSample totalDistance] != nil) {
+        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
+        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalDistance"];
+    } else {
+        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalDistance"];
+    }
     
-    NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
-    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalDistance"];
-
-    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalEnergyBurned doubleValueForUnit:[HKUnit unitFromString:@"kcal"]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
+    if ([workoutSample totalEnergyBurned] != nil) {
+        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[[workoutSample totalEnergyBurned]doubleValueForUnit:[HKUnit kilocalorieUnit]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
+    } else {
+        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalEnergyBurned"];
+    }
     
     [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
      
@@ -661,18 +669,32 @@
     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.endDate];
     NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
     NSNumber *activityId = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
-    NSDictionary<NSString *, id> *metadata = [workoutSample metadata];
+    NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
+    if ([workoutSample metadata] != nil) {
+        metadata = [workoutSample metadata];
+    }
     
     
     NSMutableArray *locationData = [NSMutableArray arrayWithCapacity:1];
     NSUInteger index = 0;
     for (CLLocation *location in locations) {
+        NSLog(@"index: %lu", (unsigned long)index);
         id speed = @{@"value": [NSNumber numberWithDouble:location.speed], @"unit":@"m/s"};
-        id speedAccuracy = @{@"value": [NSNumber numberWithDouble:location.speedAccuracy], @"unit":@"m/s"};
+        id speedAccuracy = [NSNull null];
+        if (@available(iOS 10.0, *)) {
+            speedAccuracy = @{@"value": [NSNumber numberWithDouble:location.speedAccuracy], @"unit":@"m/s"};
+        }
         id timestamp = location.timestamp;
         NSNumber *course = [NSNumber numberWithDouble:location.course]; //degrees
-        NSNumber *courseAccuracy = [NSNumber numberWithDouble:location.courseAccuracy];
-        id coordinate = @{@"latitude": [NSNumber numberWithDouble:location.coordinate.latitude], @"longitude": [NSNumber numberWithDouble:location.coordinate.longitude]};
+        NSNumber *courseAccuracy = [NSNumber numberWithInt:0];
+        if (@available(iOS 13.4, *)) {
+            courseAccuracy = [NSNumber numberWithDouble:location.courseAccuracy];
+        }
+        id coordinate = [NSNull null];
+        if (CLLocationCoordinate2DIsValid(location.coordinate)) {
+            coordinate = @{@"latitude": [NSNumber numberWithDouble:location.coordinate.latitude], @"longitude": [NSNumber numberWithDouble:location.coordinate.longitude]};
+        }
+    
         NSNumber *altitude = [NSNumber numberWithDouble:location.altitude];
         NSNumber *horizontalAccuracy = [NSNumber numberWithDouble:location.horizontalAccuracy];
         NSNumber *verticalAccuracy = [NSNumber numberWithDouble:location.verticalAccuracy];
