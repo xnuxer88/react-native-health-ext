@@ -609,7 +609,7 @@
         [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalEnergyBurned"];
     }
     
-    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
+    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"second"} forKey:@"duration"];
      
      NSNumber *isTracked = @YES; // or [NSNumber numberWithBool:YES] the old way
      if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
@@ -731,6 +731,7 @@
         @"activityId" : activityId,
         @"isTracked": isTracked,
         @"device": device,
+        @"deviceLocalID": [[workoutSample device] localIdentifier],
         @"locations": locationData,
         @"metadata":metadata,
         @"sourceName" : [[[workoutSample sourceRevision] source] name],

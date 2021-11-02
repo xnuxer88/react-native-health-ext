@@ -104,4 +104,33 @@
 
     [self.healthStore saveObject:workout withCompletion:completion];
 }
+
+- (void)workout_getWorkoutByID: (NSDictionary *)input callback: (RCTResponseSenderBlock)callback {
+    NSString *UUIDString = [input objectForKey:@"workoutId"];
+    NSUUID *UUID = [NSUUID initWithUUIDString:UUIDString];
+    HKSampleType *workoutType = [HKObjectType workoutType];
+    NSPredicate predicate = [HKQuery predicateForObjectWithUUID:UUID];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    void (^completion)(NSDictionary *results, NSError *error);
+
+    completion = ^(NSDictionary *results, NSError *error) {
+        if (results){
+            callback(@[[NSNull null], results]);
+
+            return;
+        } else {
+            NSLog(@"error getting samples: %@", error);
+            callback(@[RCTMakeError(@"error getting samples", error, nil)]);
+
+            return;
+        }
+    };
+
+    [self fetchAnchoredWorkouts:workoutType
+                      predicate:predicate
+                         anchor:nil
+                          limit:limit
+                     completion:completion];
+}
 @end

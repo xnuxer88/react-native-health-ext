@@ -515,6 +515,13 @@ RCT_EXPORT_METHOD(getWorkoutLocations:(NSDictionary *)input callback:(RCTRespons
     [self _initializeHealthStore];
     [self workout_loadAllWorkoutLocations:input callback:callback];
 }
+
+RCT_EXPORT_METHOD(getWorkoutByID:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+{
+    [self _initializeHealthStore];
+    [self workout_getWorkoutByID:input callback:callback];
+}
+
 /*@yulianto.kevin end*/
 
 
