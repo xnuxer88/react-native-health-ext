@@ -393,6 +393,11 @@ declare module 'react-native-health' {
       options: HealthInputOptions,
       callback: (err: string, results: Array<any>) => void,
     ): void
+
+    getWorkoutByID(
+      options: HealthInputOptions,
+      callback: (err: string, results: Array<any>) => void,
+    ): void
     
     Constants: Constants
   }
@@ -438,6 +443,7 @@ declare module 'react-native-health' {
     includeManuallyAdded?: boolean
     period?: number
     anchor?: string
+    uuid?: string
   }
 
   export interface HKWorkoutRouteInputOptions {

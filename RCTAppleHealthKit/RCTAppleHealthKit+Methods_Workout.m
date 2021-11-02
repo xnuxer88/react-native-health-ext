@@ -106,7 +106,7 @@
 }
 
 - (void)workout_getWorkoutByID: (NSDictionary *)input callback: (RCTResponseSenderBlock)callback {
-    NSString *UUIDString = [input objectForKey:@"workoutId"];
+    NSString *UUIDString = [input objectForKey:@"uuid"];
     NSUUID *UUID = [NSUUID initWithUUIDString:UUIDString];
     HKSampleType *workoutType = [HKObjectType workoutType];
     NSPredicate predicate = [HKQuery predicateForObjectWithUUID:UUID];
