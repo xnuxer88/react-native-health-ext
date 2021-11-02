@@ -678,21 +678,21 @@
     NSMutableArray *locationData = [NSMutableArray arrayWithCapacity:1];
     NSUInteger index = 0;
     for (CLLocation *location in locations) {
-        NSLog(@"index: %lu", (unsigned long)index);
         id speed = @{@"value": [NSNumber numberWithDouble:location.speed], @"unit":@"m/s"};
         id speedAccuracy = [NSNull null];
         if (@available(iOS 10.0, *)) {
             speedAccuracy = @{@"value": [NSNumber numberWithDouble:location.speedAccuracy], @"unit":@"m/s"};
         }
-        id timestamp = location.timestamp;
         NSNumber *course = [NSNumber numberWithDouble:location.course]; //degrees
         NSNumber *courseAccuracy = [NSNumber numberWithInt:0];
         if (@available(iOS 13.4, *)) {
             courseAccuracy = [NSNumber numberWithDouble:location.courseAccuracy];
         }
-        id coordinate = [NSNull null];
+        id latitude = [NSNull null];
+        id longitude = [NSNull null];
         if (CLLocationCoordinate2DIsValid(location.coordinate)) {
-            coordinate = @{@"latitude": [NSNumber numberWithDouble:location.coordinate.latitude], @"longitude": [NSNumber numberWithDouble:location.coordinate.longitude]};
+          latitude = [NSNumber numberWithDouble:location.coordinate.latitude];
+          longitude = [NSNumber numberWithDouble:location.coordinate.longitude];
         }
     
         NSNumber *altitude = [NSNumber numberWithDouble:location.altitude];
@@ -705,15 +705,17 @@
         } else {
             distCounter = 0;
         }
+        NSString *timestamp = [RCTAppleHealthKit buildISO8601StringFromDate:location.timestamp];
         NSNumber *distance = [NSNumber numberWithDouble:distCounter];
         index += 1;
         [locationData addObject:@{
+            @"latitude": latitude,
+            @"longitude": longitude,
             @"speed" : speed,
             @"speedAccuracy" : speedAccuracy,
             @"timestamp" : timestamp,
             @"course" : course,
             @"courseAccuracy" : courseAccuracy,
-            @"coordinate" : coordinate,
             @"altitude" : altitude,
             @"horizontalAccuracy" : horizontalAccuracy,
             @"verticalAccuracy" : verticalAccuracy,
