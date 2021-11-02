@@ -438,6 +438,7 @@ declare module 'react-native-health' {
     includeManuallyAdded?: boolean
     period?: number
     anchor?: string
+    uuid?: string
   }
 
   export interface HKWorkoutRouteInputOptions {
