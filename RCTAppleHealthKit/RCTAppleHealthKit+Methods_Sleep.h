@@ -12,4 +12,6 @@
 
 - (void)sleep_getSleepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
 
+- (void)sleep_getWatchOnlySleepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+
 @end

@@ -518,6 +518,112 @@
     [self.healthStore executeQuery:query];
 }
 
+- (void)fetchWatchOnlySleepCategorySamplesForPredicate:(NSPredicate *)predicate
+                                        limit:(NSUInteger)lim
+                                   completion:(void (^)(NSArray *, NSError *))completion {
+
+    NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate
+        ascending:false];
+
+
+    // declare the block
+    void (^handlerBlock)(HKSampleQuery *query, NSArray *results, NSError *error);
+    // create and assign the block
+    handlerBlock = ^(HKSampleQuery *query, NSArray *results, NSError *error) {
+        if (!results) {
+            if (completion) {
+                completion(nil, error);
+            }
+            return;
+        }
+
+        if (completion) {
+            NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                for (HKCategorySample *sample in results) {
+                    NSString *description = sample.description ?: @"";
+                    NSError *error = NULL;
+                    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
+                                                                                           options:NSRegularExpressionCaseInsensitive
+                                                                                             error:&error];
+                                                  
+                    
+                    NSInteger numberOfMatches = [regex numberOfMatchesInString:description
+                                                                        options:0
+                                                                          range:NSMakeRange(0, [description length])];
+                    if (numberOfMatches <= 0) {
+                        continue; // skip if the source data type is not from apple health
+                    }
+                    
+                    NSInteger val = sample.value;
+
+                    NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
+                    NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
+
+                    NSString *valueString;
+
+                    switch (val) {
+                      case HKCategoryValueSleepAnalysisInBed:
+                        valueString = @"INBED";
+                      break;
+                      case HKCategoryValueSleepAnalysisAsleep:
+                        valueString = @"ASLEEP";
+                      break;
+                    case HKCategoryValueSleepAnalysisAwake:
+                      valueString = @"AWAKE";
+                    break;
+                     default:
+                        valueString = @"UNKNOWN";
+                     break;
+                  }
+
+                    NSDictionary *device = @{
+                        @"name": [[sample device] name] ?: [NSNull null],
+                        @"model": [[sample device] model] ?: [NSNull null],
+                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
+                    };
+
+                    NSString *productType = @"";
+                    if (@available(iOS 11.0, *)) {
+                        productType = [[sample sourceRevision] productType];
+                    }
+                    
+                    NSDictionary *elem = @{
+                        @"uuid" : [sample UUID],
+                        @"value" : valueString,
+                        @"startDate" : startDateString,
+                        @"endDate" : endDateString,
+                        @"device" : device,
+                        @"sourceName" : [[[sample sourceRevision] source] name] ?: [NSNull null],
+                        @"sourceProductType" : productType,
+                        @"sourceMetaData" : [sample metadata] ?: [NSNull null],
+                        @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier] ?: [NSNull null],
+                    };
+                    
+                    [data addObject: elem];
+            
+                }
+
+                completion(data, error);
+            });
+        }
+    };
+
+    HKCategoryType *categoryType = [HKObjectType categoryTypeForIdentifier:HKCategoryTypeIdentifierSleepAnalysis];
+
+    HKSampleQuery *query = [[HKSampleQuery alloc] initWithSampleType:categoryType
+                                                          predicate:predicate
+                                                              limit:lim
+                                                    sortDescriptors:@[timeSortDescriptor]
+                                                     resultsHandler:handlerBlock];
+
+    [self.healthStore executeQuery:query];
+}
+
 - (void)fetchCorrelationSamplesOfType:(HKQuantityType *)quantityType
                                  unit:(HKUnit *)unit
                             predicate:(NSPredicate *)predicate
