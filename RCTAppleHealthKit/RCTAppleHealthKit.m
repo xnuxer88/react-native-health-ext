@@ -213,6 +213,12 @@ RCT_EXPORT_METHOD(getAnchoredWorkouts:(NSDictionary *)input callback:(RCTRespons
     [self workout_getAnchoredQuery:input callback:callback];
 }
 
+RCT_EXPORT_METHOD(getWatchAnchoredWorkouts:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+{
+    [self _initializeHealthStore];
+    [self workout_getAnchoredQuery:input callback:callback];
+}
+
 RCT_EXPORT_METHOD(setObserver:(NSDictionary *)input)
 {
     [self _initializeHealthStore];
@@ -316,6 +322,13 @@ RCT_EXPORT_METHOD(getHeartRateSamples:(NSDictionary *)input callback:(RCTRespons
     [self _initializeHealthStore];
     [self vitals_getHeartRateSamples:input callback:callback];
 }
+
+RCT_EXPORT_METHOD(getWatchHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+{
+    [self _initializeHealthStore];
+    [self vitals_getWatchHeartRateSamples:input callback:callback];
+}
+
 
 RCT_EXPORT_METHOD(getRestingHeartRate:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
 {
@@ -437,12 +450,6 @@ RCT_EXPORT_METHOD(getSleepSamples:(NSDictionary *)input callback:(RCTResponseSen
     [self sleep_getSleepSamples:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getWatchOnlySleepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
-{
-    [self _initializeHealthStore];
-    [self sleep_getWatchOnlySleepSamples:input callback:callback];
-}
-
 RCT_EXPORT_METHOD(getInfo:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
 {
     [self _initializeHealthStore];
@@ -521,13 +528,6 @@ RCT_EXPORT_METHOD(getWorkoutLocations:(NSDictionary *)input callback:(RCTRespons
     [self _initializeHealthStore];
     [self workout_loadAllWorkoutLocations:input callback:callback];
 }
-
-RCT_EXPORT_METHOD(getWorkoutByID:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
-{
-    [self _initializeHealthStore];
-    [self workout_getWorkoutByID:input callback:callback];
-}
-
 /*@yulianto.kevin end*/
 
 

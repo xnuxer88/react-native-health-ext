@@ -50,12 +50,21 @@
     return [RCTAppleHealthKit predicateForSamplesOnDay:now];
 }
 
++ (NSPredicate *)predicateWatchOnly {
+    NSMutableSet *deviceModelAllowedValuesSet = [NSMutableSet setWithCapacity:1];
+    [deviceModelAllowedValuesSet addObject:@"Watch"];
+    
+    return [HKQuery predicateForObjectsWithDeviceProperty:HKDevicePropertyKeyModel allowedValues:deviceModelAllowedValuesSet];
+}
+
++ (NSPredicate *)predicateNotUserEntered {
+    return [NSPredicate predicateWithFormat:@"metadata.%K != YES", HKMetadataKeyWasUserEntered];
+}
 
 + (NSPredicate *)predicateForSamplesOnDayFromTimestamp:(NSString *)timestamp {
     NSDate *day = [RCTAppleHealthKit parseISO8601DateFromString:timestamp];
     return [RCTAppleHealthKit predicateForSamplesOnDay:day];
 }
-
 
 + (NSPredicate *)predicateForSamplesOnDay:(NSDate *)date {
     NSCalendar *calendar = [NSCalendar currentCalendar];
@@ -64,9 +73,14 @@
     return [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDate options:HKQueryOptionStrictStartDate];
 }
 
-
 + (NSPredicate *)predicateForSamplesBetweenDates:(NSDate *)startDate endDate:(NSDate *)endDate {
     return [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDate options:HKQueryOptionStrictStartDate];
+}
+
++ (NSPredicate *)predicateForSamplesBetweenDatesWithFormat: (NSDate *)startDate endDate:(NSDate *)endDate {
+    return [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
 }
 
 + (NSPredicate *)predicateForAnchoredQueries:(HKQueryAnchor *)anchor startDate:(NSDate *)startDate endDate:(NSDate *)endDate {
@@ -609,7 +623,7 @@
         [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalEnergyBurned"];
     }
     
-    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"second"} forKey:@"duration"];
+    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
      
      NSNumber *isTracked = @YES; // or [NSNumber numberWithBool:YES] the old way
      if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
@@ -731,7 +745,6 @@
         @"activityId" : activityId,
         @"isTracked": isTracked,
         @"device": device,
-        @"deviceLocalID": [[workoutSample device] localIdentifier],
         @"locations": locationData,
         @"metadata":metadata,
         @"sourceName" : [[[workoutSample sourceRevision] source] name],

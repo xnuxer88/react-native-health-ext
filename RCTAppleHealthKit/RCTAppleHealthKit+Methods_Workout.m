@@ -53,8 +53,22 @@
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     
+    BOOL includeUserEntered = [RCTAppleHealthKit boolFromOptions:input key:@"includeUserEntered" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    
     NSPredicate *predicate = [RCTAppleHealthKit predicateForAnchoredQueries:anchor startDate:startDate endDate:endDate];
-
+    
+    if (includeUserEntered == false) {
+        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+    }
+    
+    if (watchOnly) {
+        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchOnlyPredicate]];
+    }
+    
     void (^completion)(NSDictionary *results, NSError *error);
 
     completion = ^(NSDictionary *results, NSError *error) {
@@ -70,11 +84,7 @@
         }
     };
 
-    [self fetchAnchoredWorkouts:workoutType
-                      predicate:predicate
-                         anchor:anchor
-                          limit:limit
-                     completion:completion];
+    [self fetchAnchoredWorkouts:workoutType predicate:predicate anchor:anchor limit:limit ascending:ascending completion:completion];
 }
 
 - (void)workout_save: (NSDictionary *)input callback: (RCTResponseSenderBlock)callback {
@@ -103,34 +113,5 @@
     };
 
     [self.healthStore saveObject:workout withCompletion:completion];
-}
-
-- (void)workout_getWorkoutByID: (NSDictionary *)input callback: (RCTResponseSenderBlock)callback {
-    NSString *UUIDString = [input objectForKey:@"uuid"];
-    NSUUID *UUID = [NSUUID initWithUUIDString:UUIDString];
-    HKSampleType *workoutType = [HKObjectType workoutType];
-    NSPredicate predicate = [HKQuery predicateForObjectWithUUID:UUID];
-    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
-    
-    void (^completion)(NSDictionary *results, NSError *error);
-
-    completion = ^(NSDictionary *results, NSError *error) {
-        if (results){
-            callback(@[[NSNull null], results]);
-
-            return;
-        } else {
-            NSLog(@"error getting samples: %@", error);
-            callback(@[RCTMakeError(@"error getting samples", error, nil)]);
-
-            return;
-        }
-    };
-
-    [self fetchAnchoredWorkouts:workoutType
-                      predicate:predicate
-                         anchor:nil
-                          limit:limit
-                     completion:completion];
 }
 @end

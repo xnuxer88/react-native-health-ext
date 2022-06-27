@@ -15,25 +15,43 @@
 {
     HKQuantityType *activeEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierActiveEnergyBurned];
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
-    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:true];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeUserEntered = [RCTAppleHealthKit boolFromOptions:input key:@"includeUserEntered" withDefault:false];
 
     if(startDate == nil){
         callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeUserEntered == false) {
+        NSPredicate *includeUserEntered = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeUserEntered]];
+    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
+    
 
     [self fetchCumulativeSumStatisticsCollection:activeEnergyType
                                             unit:unit
                                           period:period
+                                       predicate:predicate
                                        startDate:startDate
                                          endDate:endDate
+                                           limit:limit
                                        ascending:ascending
-                                           limit:HKObjectQueryNoLimit
-                            includeManuallyAdded:includeManuallyAdded
                                       completion:^(NSArray *results, NSError *error) {
                                           if(results){
                                               callback(@[[NSNull null], results]);
@@ -50,25 +68,42 @@
 {
     HKQuantityType *basalEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBasalEnergyBurned];
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
-    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:true];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeUserEntered = [RCTAppleHealthKit boolFromOptions:input key:@"includeUserEntered" withDefault:false];
 
     if(startDate == nil){
         callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeUserEntered == false) {
+        NSPredicate *includeUserEntered = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeUserEntered]];
+    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
 
     [self fetchCumulativeSumStatisticsCollection:basalEnergyType
                                             unit:unit
                                           period:period
+                                       predicate:predicate
                                        startDate:startDate
                                          endDate:endDate
+                                           limit:limit
                                        ascending:ascending
-                                           limit:HKObjectQueryNoLimit
-                            includeManuallyAdded:includeManuallyAdded
                                       completion:^(NSArray *results, NSError *error) {
                                           if(results){
                                               callback(@[[NSNull null], results]);
@@ -82,29 +117,46 @@
 }
 
 
-- (void)activity_getAppleExerciseTime:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)activity_getAppleExerciseTime:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback API_AVAILABLE(ios(9.3))
 {
     HKQuantityType *exerciseType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleExerciseTime];
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit secondUnit]];
-    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:true];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeUserEntered = [RCTAppleHealthKit boolFromOptions:input key:@"includeUserEntered" withDefault:false];
 
     if(startDate == nil){
         callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeUserEntered == false) {
+        NSPredicate *includeUserEntered = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeUserEntered]];
+    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
 
     [self fetchCumulativeSumStatisticsCollection:exerciseType
                                             unit:unit
                                           period:period
+                                       predicate:predicate
                                        startDate:startDate
                                          endDate:endDate
+                                           limit:limit
                                        ascending:ascending
-                                           limit:HKObjectQueryNoLimit
-                            includeManuallyAdded:includeManuallyAdded
                                       completion:^(NSArray *results, NSError *error) {
                                           if(results){
                                               callback(@[[NSNull null], results]);
@@ -117,29 +169,47 @@
                                       }];
 }
 
-- (void)activity_getAppleStandTime:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)activity_getAppleStandTime:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback API_AVAILABLE(ios(13.0))
 {
     HKQuantityType *exerciseType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleStandTime];
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit secondUnit]];
-    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:true];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeUserEntered = [RCTAppleHealthKit boolFromOptions:input key:@"includeUserEntered" withDefault:false];
 
     if(startDate == nil){
         callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeUserEntered == false) {
+        NSPredicate *includeUserEntered = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeUserEntered]];
+    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
+
 
     [self fetchCumulativeSumStatisticsCollection:exerciseType
                                             unit:unit
                                           period:period
+                                       predicate:predicate
                                        startDate:startDate
                                          endDate:endDate
+                                           limit:limit
                                        ascending:ascending
-                                           limit:HKObjectQueryNoLimit
-                            includeManuallyAdded:includeManuallyAdded
                                       completion:^(NSArray *results, NSError *error) {
                                           if(results){
                                               callback(@[[NSNull null], results]);

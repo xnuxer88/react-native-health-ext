@@ -24,12 +24,6 @@
                                    day:(NSDate *)day
                            completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler;
 
-- (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
-                                          unit:(HKUnit *)unit
-                                     startDate:(NSDate *)startDate
-                                       endDate:(NSDate *)endDate
-                                    completion:(void (^)(NSArray *, NSError *))completionHandler;
-
 - (void)fetchSamplesOfType:(HKSampleType *)quantityType
                               unit:(HKUnit *)unit
                          predicate:(NSPredicate *)predicate
@@ -47,6 +41,7 @@
                     predicate:(NSPredicate *)predicate
                        anchor:(HKQueryAnchor *)anchor
                         limit:(NSUInteger)lim
+                    ascending:(BOOL)asc
                    completion:(void (^)(NSDictionary *, NSError *))completion;
 
 - (void)fetchQuantitySamplesOfType:(HKQuantityType *)quantityType
@@ -56,6 +51,13 @@
                              limit:(NSUInteger)lim
                         completion:(void (^)(NSArray *, NSError *))completion;
 
+- (void)fetchCompleteQuantitySamplesOfType:(HKQuantityType *)quantityType
+                                      unit:(HKUnit *)unit
+                                 predicate:(NSPredicate *)predicate
+                                 ascending:(BOOL)asc
+                                     limit:(NSUInteger)lim
+                                completion:(void (^)(NSArray *, NSError *))completion;
+
 - (void)fetchCorrelationSamplesOfType:(HKQuantityType *)quantityType
                                  unit:(HKUnit *)unit
                             predicate:(NSPredicate *)predicate
@@ -63,30 +65,34 @@
                                 limit:(NSUInteger)lim
                            completion:(void (^)(NSArray *, NSError *))completion;
 
-- (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
-                                          unit:(HKUnit *)unit
-                                     startDate:(NSDate *)startDate
-                                       endDate:(NSDate *)endDate
-                                     ascending:(BOOL)asc
-                                         limit:(NSUInteger)lim
-                                    completion:(void (^)(NSArray *, NSError *))completionHandler;
+//- (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+//                                          unit:(HKUnit *)unit
+//                                     startDate:(NSDate *)startDate
+//                                       endDate:(NSDate *)endDate
+//                                    completion:(void (^)(NSArray *, NSError *))completionHandler;
+//
+//- (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+//                                          unit:(HKUnit *)unit
+//                                     startDate:(NSDate *)startDate
+//                                       endDate:(NSDate *)endDate
+//                                     ascending:(BOOL)asc
+//                                         limit:(NSUInteger)lim
+//                                    completion:(void (^)(NSArray *, NSError *))completionHandler;
 
 - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
                                           unit:(HKUnit *)unit
                                         period:(NSUInteger)period
+                                     predicate:(NSPredicate *)predicate
                                      startDate:(NSDate *)startDate
                                        endDate:(NSDate *)endDate
-                                     ascending:(BOOL)asc
                                          limit:(NSUInteger)lim
-                          includeManuallyAdded:(BOOL)includeManuallyAdded
+                                     ascending:(BOOL)asc
                                     completion:(void (^)(NSArray *, NSError *))completionHandler;
 
 - (void)fetchSleepCategorySamplesForPredicate:(NSPredicate *)predicate
                                    limit:(NSUInteger)lim
-                                   completion:(void (^)(NSArray *, NSError *))completion;
-
-- (void)fetchWatchOnlySleepCategorySamplesForPredicate:(NSPredicate *)predicate
-                                   limit:(NSUInteger)lim
+                                    ascending:(BOOL)asc
+                                    watchOnly:(BOOL)watchOnly
                                    completion:(void (^)(NSArray *, NSError *))completion;
 
 - (void)fetchWorkoutForPredicate:(NSPredicate *)predicate

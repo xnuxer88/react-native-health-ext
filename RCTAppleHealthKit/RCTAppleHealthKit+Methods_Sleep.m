@@ -26,18 +26,18 @@
     }
     
     // day predicate
-    NSPredicate *dayPredicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
+    NSPredicate *predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
     
     // not include manual data
-    NSPredicate *manualDataPredicate = [NSPredicate predicateWithFormat:@"metadata.%K != YES", HKMetadataKeyWasUserEntered];
-    
-    NSPredicate *predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate, manualDataPredicate]];
-    
+    if (includeUserEntered == false) {
+        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+    }
+
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
     [self fetchSleepCategorySamplesForPredicate:predicate
                                           limit:limit
-                             includeUserEntered:includeUserEntered
                                       ascending:ascending
                                 watchOnly:watchOnly
                                      completion:^(NSArray *results, NSError *error) {
