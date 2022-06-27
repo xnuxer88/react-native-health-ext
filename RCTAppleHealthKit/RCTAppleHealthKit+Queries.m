@@ -407,8 +407,8 @@
                         }
 
                         NSDictionary *elem = @{
-                                               @"activityId" : [NSNumber numberWithInt:[sample workoutActivityType]],
                                                @"id" : [[sample UUID] UUIDString],
+                                               @"activityType" : [NSNumber numberWithInt:[sample workoutActivityType]],
                                                @"activityName" : type,
                                                @"calories" : @(energy),
                                                @"tracked" : @(isTracked),
@@ -448,10 +448,12 @@
 
 - (void)fetchSleepCategorySamplesForPredicate:(NSPredicate *)predicate
                                         limit:(NSUInteger)lim
+                                    ascending:(BOOL)asc
+                                    watchOnly:(BOOL)watchOnly
                                    completion:(void (^)(NSArray *, NSError *))completion {
 
     NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate
-                                                                       ascending:false];
+        ascending:asc];
 
 
     // declare the block
@@ -469,36 +471,83 @@
             NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
 
             dispatch_async(dispatch_get_main_queue(), ^{
-
+                
                 for (HKCategorySample *sample in results) {
-                    NSInteger val = sample.value;
-
+                    NSString *description = sample.description ?: @"";
+                    NSError *error = NULL;
+                    
+                    if (watchOnly) {
+                        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
+                                                                                               options:NSRegularExpressionCaseInsensitive
+                                                                                                 error:&error];
+                                                      
+                        
+                        NSInteger numberOfMatches = [regex numberOfMatchesInString:description
+                                                                            options:0
+                                                                              range:NSMakeRange(0, [description length])];
+                        if (numberOfMatches <= 0) {
+                            continue; // skip if the source data type is not from apple health
+                        }
+                    }
+                    
                     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
-                    NSString *valueString;
+//                    NSString *valueString;
 
-                    switch (val) {
-                      case HKCategoryValueSleepAnalysisInBed:
-                        valueString = @"INBED";
-                      break;
-                      case HKCategoryValueSleepAnalysisAsleep:
-                        valueString = @"ASLEEP";
-                      break;
-                     default:
-                        valueString = @"UNKNOWN";
-                     break;
-                  }
+//                    switch (val) {
+//                      case HKCategoryValueSleepAnalysisInBed:
+//                        valueString = @"INBED";
+//                      break;
+//                      case HKCategoryValueSleepAnalysisAsleep:
+//                        valueString = @"ASLEEP";
+//                      break;
+//                    case HKCategoryValueSleepAnalysisAwake:
+//                      valueString = @"AWAKE";
+//                    break;
+//                     default:
+//                        valueString = @"UNKNOWN";
+//                     break;
+//                  }
 
-                    NSDictionary *elem = @{
-                            @"value" : valueString,
-                            @"startDate" : startDateString,
-                            @"endDate" : endDateString,
-                            @"sourceName" : [[[sample sourceRevision] source] name],
-                            @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+                    NSDictionary *device = @{
+                        @"name": [[sample device] name] ?: [NSNull null],
+                        @"model": [[sample device] model] ?: [NSNull null],
+                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
                     };
+                    
+                    bool isUserEntered = false;
+                    if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+                        isUserEntered = false;
+                    }
 
-                    [data addObject:elem];
+                    id sourceType = @"";
+                    if (@available(iOS 11.0, *)) {
+                        sourceType = [[sample sourceRevision] productType];
+                    } else {
+                        sourceType = [[sample device] name];
+                        if (!sourceType) {
+                            sourceType = [NSNull null];
+                        }
+                    }
+                    
+                    NSDictionary *elem = @{
+                        @"uuid" : [sample UUID],
+                        @"sleepCategory" : @(sample.value),
+                        @"startDate" : startDateString,
+                        @"endDate" : endDateString,
+                        @"device" : device,
+                        @"sourceType": sourceType,
+                        @"sourceName" : [[[sample sourceRevision] source] name] ?: [NSNull null],
+                        @"sourceMetaData" : [sample metadata] ?: [NSNull null],
+                        @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier] ?: [NSNull null],
+                        @"isUserEntered": @(isUserEntered)
+                    };
+                    
+                    [data addObject: elem];
+            
                 }
 
                 completion(data, error);
@@ -506,8 +555,7 @@
         }
     };
 
-    HKCategoryType *categoryType =
-    [HKObjectType categoryTypeForIdentifier:HKCategoryTypeIdentifierSleepAnalysis];
+    HKCategoryType *categoryType = [HKObjectType categoryTypeForIdentifier:HKCategoryTypeIdentifierSleepAnalysis];
 
     HKSampleQuery *query = [[HKSampleQuery alloc] initWithSampleType:categoryType
                                                           predicate:predicate

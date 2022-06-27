@@ -12,7 +12,6 @@
 
 @implementation RCTAppleHealthKit (Methods_Vitals)
 
-
 - (void)vitals_getHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
 {
     HKQuantityType *heartRateType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRate];
@@ -23,6 +22,8 @@
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[count unitDividedByUnit:minute]];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL includeUserEntered = [RCTAppleHealthKit boolFromOptions:input key:@"includeUserEntered" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     if(startDate == nil){
@@ -31,6 +32,16 @@
     }
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
 
+    NSString *includeUserEnteredString = (includeUserEntered) ? @"YES" : @"NO";
+    NSPredicate *manualDataPredicate = [NSPredicate predicateWithFormat:@"metadata.%K == %@", HKMetadataKeyWasUserEntered, includeUserEnteredString];
+    
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
+    
+    predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+    
     [self fetchQuantitySamplesOfType:heartRateType
                                 unit:unit
                            predicate:predicate
