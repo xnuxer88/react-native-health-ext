@@ -20,7 +20,21 @@
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    
     NSPredicate *predicate = [RCTAppleHealthKit predicateForAnchoredQueries:anchor startDate:startDate endDate:endDate];
+    
+    if (includeManuallyAdded == false) {
+        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+    }
+    
+    if (watchOnly) {
+        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchOnlyPredicate]];
+    }
     
     void (^completion)(NSDictionary *results, NSError *error);
     
@@ -41,6 +55,7 @@
                       predicate:predicate
                          anchor:anchor
                           limit:limit
+                         ascending:ascending
                      completion:completion];
 }
 

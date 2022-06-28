@@ -612,7 +612,7 @@
     NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
     if ([workoutSample totalDistance] != nil) {
         NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
-        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalDistance"];
+        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit meterUnit]]],@"unit":unitString} forKey:@"totalDistance"];
     } else {
         [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalDistance"];
     }
@@ -625,20 +625,33 @@
     
     [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
      
-     NSNumber *isTracked = @YES; // or [NSNumber numberWithBool:YES] the old way
-     if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-         isTracked = @NO;
-     }
+    
+    bool isUserEntered = false;
+    if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+        isUserEntered = true;
+    }
+//     NSNumber *isTracked = @YES; // or [NSNumber numberWithBool:YES] the old way
+//     if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+//         isTracked = @NO;
+//     }
+    
+    NSDictionary *device = @{
+        @"name": [[workoutSample device] name] ?: [NSNull null],
+        @"model": [[workoutSample device] model] ?: [NSNull null],
+        @"manufacturer": [[workoutSample device] manufacturer] ?: [NSNull null],
+        @"UDIDDevice": [[workoutSample device] UDIDeviceIdentifier] ?: [NSNull null],
+        @"LocalID": [[workoutSample device] localIdentifier] ?: [NSNull null],
+    };
 
-     NSString* device = @"";
-     if (@available(iOS 11.0, *)) {
-         device = [[workoutSample sourceRevision] productType];
-     } else {
-         device = [[workoutSample device] name];
-         if (!device) {
-             device = @"iPhone";
-         }
-     }
+    id sourceType = [NSNull null];
+    if (@available(iOS 11.0, *)) {
+        sourceType = [[workoutSample sourceRevision] productType];
+    } else {
+        sourceType = [[workoutSample device] name];
+        if (!sourceType) {
+            sourceType = [NSNull null];
+        }
+    }
      
      if (@available(iOS 10.0, *)) {
          if (workoutSample.totalSwimmingStrokeCount) {
@@ -682,7 +695,7 @@
     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.startDate];
     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.endDate];
     NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
-    NSNumber *activityId = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
+    NSNumber *activityType = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
     NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
     if ([workoutSample metadata] != nil) {
         metadata = [workoutSample metadata];
@@ -742,12 +755,13 @@
         @"startDateTime" : startDateString,
         @"endDateTime" : endDateString,
         @"activityName": type,
-        @"activityId" : activityId,
-        @"isTracked": isTracked,
+        @"activityType" : activityType,
+        @"isUserEntered": @(isUserEntered),
         @"device": device,
         @"locations": locationData,
         @"metadata":metadata,
         @"sourceName" : [[[workoutSample sourceRevision] source] name],
+        @"sourceType" : sourceType,
         @"sourceId" : [[[workoutSample sourceRevision] source] bundleIdentifier],
     }];
     

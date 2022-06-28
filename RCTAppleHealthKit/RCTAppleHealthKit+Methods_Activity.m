@@ -222,4 +222,113 @@
                                       }];
 }
 
+- (void)activity_getActiveEnergyBurnedPromise:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
+    HKQuantityType *activeEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierActiveEnergyBurned];
+    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
+    NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
+    NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        return;
+    }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
+    
+
+    [self fetchCumulativeSumStatisticsCollection:activeEnergyType
+                                            unit:unit
+                                          period:period
+                                       predicate:predicate
+                                       startDate:startDate
+                                         endDate:endDate
+                                           limit:limit
+                                       ascending:ascending
+                                      completion:^(NSArray *results, NSError *error) {
+                                          if(results){
+                                              resolve(results);
+//                                              callback(@[[NSNull null], results]);
+                                              return;
+                                          } else {
+                                              NSLog(@"error getting active energy burned samples: %@", error);
+//                                              callback(@[RCTMakeError(@"error getting active energy burned samples:", error, nil)]);
+                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
+                                              return;
+                                          }
+                                      }];
+}
+
+- (void)activity_getBasalEnergyBurnedPromise:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
+    HKQuantityType *basalEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBasalEnergyBurned];
+    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
+    NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
+    NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        return;
+    }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+    }
+
+    [self fetchCumulativeSumStatisticsCollection:basalEnergyType
+                                            unit:unit
+                                          period:period
+                                       predicate:predicate
+                                       startDate:startDate
+                                         endDate:endDate
+                                           limit:limit
+                                       ascending:ascending
+                                      completion:^(NSArray *results, NSError *error) {
+                                          if(results){
+                                              resolve(results);
+//                                              callback(@[[NSNull null], results]);
+                                              return;
+                                          } else {
+                                              NSLog(@"error getting basal energy burned samples: %@", error);
+//                                              callback(@[RCTMakeError(@"error getting basal energy burned samples:", error, nil)]);
+                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting basal energy burned samples: %@", error.localizedDescription], error);
+                                              return;
+                                          }
+                                      }];
+}
+
 @end

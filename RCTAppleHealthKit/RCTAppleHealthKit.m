@@ -329,6 +329,19 @@ RCT_EXPORT_METHOD(getWalkingHeartRateAverage:(NSDictionary *)input callback:(RCT
     [self vitals_getWalkingHeartRateAverage:input callback:callback];
 }
 
+RCT_EXPORT_METHOD(getActiveEnergyBurnedPromise:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+{
+   [self _initializeHealthStore];
+   [self activity_getActiveEnergyBurnedPromise:input resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(getBasalEnergyBurnedPromise:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+{
+   [self _initializeHealthStore];
+   [self activity_getBasalEnergyBurnedPromise:input resolver:resolve rejecter:reject];
+}
+
+
 RCT_EXPORT_METHOD(getActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
 {
    [self _initializeHealthStore];

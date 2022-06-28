@@ -118,6 +118,7 @@
                     predicate:(NSPredicate *)predicate
                        anchor:(HKQueryAnchor *)anchor
                         limit:(NSUInteger)lim
+                       ascending:(BOOL)ascending
                       completion:(void (^)(NSDictionary *, NSError *))completion;
 
 - (void)fetchWorkoutRouteHealthStore: (HKWorkout *)workout

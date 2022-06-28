@@ -18,8 +18,11 @@
 - (void)fitness_getStepCountOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
 {
     NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:true];
+    
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
+    
     if(date == nil) {
         callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
         return;
@@ -30,10 +33,15 @@
 
     NSPredicate *dayPredicate = [RCTAppleHealthKit predicateForSamplesOnDay:date];
     NSPredicate *predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate]];
-    if (includeManuallyAdded == false) {
-        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
-    }
+//    if (includeManuallyAdded == false) {
+//        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+//    }
+//
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
     
     [self fetchSumOfSamplesOnDayForType:stepCountType
                                     unit:stepsUnit

@@ -280,9 +280,9 @@
                             NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                             NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
-                            bool isTracked = true;
+                            bool isUserEntered = false;
                             if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                                isTracked = false;
+                                isUserEntered = true;
                             }
 
                             NSString* device = @"";
@@ -300,7 +300,7 @@
                                                    @"id" : [[sample UUID] UUIDString],
                                                    @"activityName" : type,
                                                    @"calories" : @(energy),
-                                                   @"tracked" : @(isTracked),
+                                                   @"isUserEntered" : @(isUserEntered),
                                                    @"metadata" : [sample metadata],
                                                    @"sourceName" : [[[sample sourceRevision] source] name],
                                                    @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
@@ -379,7 +379,9 @@
                          predicate:(NSPredicate *)predicate
                          ascending:(BOOL)asc
                              limit:(NSUInteger)lim
-                        completion:(void (^)(NSArray *, NSError *))completion {
+                        completion:(void (^)(NSArray *, NSError *))completion
+API_AVAILABLE(ios(12.0))
+{
     NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate ascending:asc];
     
     void (^handlerBlock)(HKSampleQuery *query, NSArray *results, NSError *error);
@@ -517,8 +519,9 @@
                 for (HKWorkout *sample in sampleObjects) {
                     @try {
                         double energy =  [[sample totalEnergyBurned] doubleValueForUnit:[HKUnit kilocalorieUnit]];
-                        double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit mileUnit]];
-              
+                        double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit meterUnit]];
+                        NSTimeInterval duration = [sample duration];
+
                         NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                         NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
@@ -534,8 +537,8 @@
                             @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
                             @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
                         };
-                        
-                        
+
+
                         id sourceType = [NSNull null];
                         if (@available(iOS 11.0, *)) {
                             sourceType = [[sample sourceRevision] productType];
@@ -555,6 +558,7 @@
                                                @"id" : [[sample UUID] UUIDString],
                                                @"activityName" : activityName,
                                                @"calories" : @(energy),
+                                               @"duration" : @(duration),
                                                @"isUserEntered" : @(isUserEntered),
                                                @"metadata" : [sample metadata],
                                                @"sourceName" : [[[sample sourceRevision] source] name],
@@ -565,6 +569,7 @@
                                                @"start" : startDateString,
                                                @"end" : endDateString
                                                };
+                        
 
                         [data addObject:elem];
                     } @catch (NSException *exception) {
@@ -772,19 +777,20 @@
                             predicate:(NSPredicate *)predicate
                            completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler {
     HKStatisticsQuery *query = [[HKStatisticsQuery alloc] initWithQuantityType:quantityType
-                                                          quantitySamplePredicate:predicate
-                                                          options:HKStatisticsOptionCumulativeSum
-                                                          completionHandler:^(HKStatisticsQuery *query, HKStatistics *result, NSError *error) {
-                                                              if ([error.localizedDescription isEqualToString:@"No data available for the specified predicate."] && completionHandler) {
-                                                                  completionHandler(0, day, day, nil);
-                                                                } else if (completionHandler) {
-                                                                    HKQuantity *sum = [result sumQuantity];
-                                                                    NSDate *startDate = result.startDate;
-                                                                    NSDate *endDate = result.endDate;
-                                                                    double value = [sum doubleValueForUnit:unit];
-                                                                    completionHandler(value, startDate, endDate, error);
-                                                              }
-                                                          }];
+      quantitySamplePredicate:predicate
+      options:HKStatisticsOptionCumulativeSum
+      completionHandler:^(HKStatisticsQuery *query, HKStatistics *result, NSError *error) {
+        if ([error.localizedDescription isEqualToString:@"No data available for the specified predicate."] && completionHandler) {
+          completionHandler(0, day, day, nil);
+        } else if (completionHandler) {
+            NSLog(@"result.description %@",result.description);
+            HKQuantity *sum = [result sumQuantity];
+            NSDate *startDate = result.startDate;
+            NSDate *endDate = result.endDate;
+            double value = [sum doubleValueForUnit:unit];
+            completionHandler(value, startDate, endDate, error);
+        }
+    }];
 
     [self.healthStore executeQuery:query];
 }
@@ -961,12 +967,14 @@
 
     // Set the results handler
     query.initialResultsHandler = ^(HKStatisticsCollectionQuery *query, HKStatisticsCollection *results, NSError *error) {
+        NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
+        
         if (error) {
             // Perform proper error handling here
             NSLog(@"*** An error occurred while calculating the statistics: %@ ***", error.localizedDescription);
+            completionHandler(data, error);
+            return;
         }
-
-        NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
 
         [results enumerateStatisticsFromDate:startDate
                                       toDate:endDate
@@ -1179,6 +1187,7 @@
 - (void)fetchActivitySummary:(NSDate *)startDate
                      endDate:(NSDate *)endDate
                   completion:(void (^)(NSArray *, NSError *))completionHandler
+API_AVAILABLE(ios(9.3))
 {
     NSCalendar *calendar = [NSCalendar currentCalendar];
     NSDateComponents *startComponent = [calendar components:NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear | NSCalendarUnitEra
@@ -1257,12 +1266,14 @@
 }
 
 - (void)fetchWorkoutRouteHealthStore:(HKWorkout *)workoutSample
-                          completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion {
-    NSPredicate *runningQuery = [HKQuery predicateForObjectsFromWorkout:workoutSample];
+                          completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion
+API_AVAILABLE(ios(11.0))
+{
+    NSPredicate *workoutPredicate = [HKQuery predicateForObjectsFromWorkout:workoutSample];
     
     HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc]
                                     initWithType:[HKSeriesType workoutRouteType]
-                                    predicate:runningQuery
+                                    predicate:workoutPredicate
                                     anchor:nil
                                     limit:HKObjectQueryNoLimit
                                     resultsHandler:^(HKAnchoredObjectQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSArray<HKDeletedObject *> * _Nullable deletedObjects, HKQueryAnchor * _Nullable newAnchor, NSError * _Nullable error) {
@@ -1279,7 +1290,8 @@
         
         NSMutableArray *routeLocations = [NSMutableArray arrayWithCapacity:1];
         
-        HKQuery *routeLocationQuery = [[HKWorkoutRouteQuery alloc]initWithRoute:workoutRoutesSamples.firstObject dataHandler:^(HKWorkoutRouteQuery * _Nonnull query, NSArray<CLLocation *> * _Nullable routeData, BOOL done, NSError * _Nullable error) {
+        HKQuery *routeLocationQuery = nil;
+        routeLocationQuery = [[HKWorkoutRouteQuery alloc]initWithRoute:workoutRoutesSamples.firstObject dataHandler:^(HKWorkoutRouteQuery * _Nonnull query, NSArray<CLLocation *> * _Nullable routeData, BOOL done, NSError * _Nullable error) {
             if (error) {
                 [self.healthStore stopQuery:routeLocationQuery];
                 if (completion) {
@@ -1296,7 +1308,9 @@
             }
         }];
         
-        [self.healthStore executeQuery:routeLocationQuery];
+        if (routeLocationQuery != nil) {
+            [self.healthStore executeQuery:routeLocationQuery];
+        }
     }];
     
     [self.healthStore executeQuery:query];
@@ -1306,21 +1320,21 @@
                        predicate:(NSPredicate *)predicate
                           anchor:(HKQueryAnchor *)anchor
                            limit:(NSUInteger)lim
+                       ascending:(BOOL)ascending
                       completion:(void (^)(NSDictionary *, NSError *))completion {
+    
     [self fetchWorkoutsHealthStore:type
                  predicate:predicate
                     anchor:anchor
                      limit:lim
                 completion:^(NSArray<HKWorkout *> *workouts, HKQueryAnchor * _Nullable newAnchor, NSError *error) {
         if (error) {
-            NSLog(@"[fetchAllWorkoutLocations] error: %@", error.localizedDescription);
             completion(nil, error);
             return;
         }
         
         if (!workouts) {
-            NSLog(@"[fetchAllWorkoutLocations] no workout data found");
-            NSError *error = [NSError errorWithDomain:@"com.yourcompany.appname" code:3456 userInfo:@{NSLocalizedDescriptionKey:@"No workout data found"}];
+            NSError *error = [NSError errorWithDomain:@"com.actxa.actxa" code:3456 userInfo:@{NSLocalizedDescriptionKey:@"No workout data found"}];
             completion(nil, error);
             return;
         }
@@ -1328,10 +1342,10 @@
         NSMutableArray *results = [NSMutableArray arrayWithCapacity:1];
         
         __block NSUInteger tally = 0;
+        
         for (HKWorkout *workout in workouts) {
             [self fetchWorkoutRouteHealthStore:workout
                 completion:^(NSArray<CLLocation *> *locations, NSError *error) {
-                NSLog(@"[fetchWorkoutRouteHealthStore]");
                 tally += 1;
                 if (error) {
                     if (tally == [workouts count]) {
@@ -1346,6 +1360,7 @@
                 }
             }];
         }
+        
     }];
 };
 
