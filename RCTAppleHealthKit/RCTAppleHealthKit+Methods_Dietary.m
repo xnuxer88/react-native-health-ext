@@ -512,11 +512,18 @@
 
     HKQuantityType *dietaryWaterType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDietaryWater];
     HKUnit *literUnit = [HKUnit literUnit];
+    
+    NSPredicate *dayPredicate = [RCTAppleHealthKit predicateForSamplesOnDay:date];
+    NSPredicate *predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate]];
+    if (includeManuallyAdded == false) {
+        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+    }
 
     [self fetchSumOfSamplesOnDayForType:dietaryWaterType
                                     unit:literUnit
-                                    includeManuallyAdded:includeManuallyAdded
                                     day:date
+                              predicate:predicate
                              completion:^(double value, NSDate *startDate, NSDate *endDate, NSError *error) {
         if (!value && value != 0) {
             callback(@[RCTJSErrorFromNSError(error)]);

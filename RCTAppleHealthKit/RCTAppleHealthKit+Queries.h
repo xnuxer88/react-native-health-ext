@@ -20,8 +20,8 @@
 
 - (void)fetchSumOfSamplesOnDayForType:(HKQuantityType *)quantityType
                                    unit:(HKUnit *)unit
-                          includeManuallyAdded:(BOOL)includeManuallyAdded
                                    day:(NSDate *)day
+                            predicate:(NSPredicate *)predicate
                            completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler;
 
 - (void)fetchSamplesOfType:(HKSampleType *)quantityType

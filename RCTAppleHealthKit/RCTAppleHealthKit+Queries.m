@@ -768,15 +768,9 @@
 
 - (void)fetchSumOfSamplesOnDayForType:(HKQuantityType *)quantityType
                                  unit:(HKUnit *)unit
-                                 includeManuallyAdded:(BOOL)includeManuallyAdded
                                   day:(NSDate *)day
+                            predicate:(NSPredicate *)predicate
                            completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler {
-    NSPredicate *dayPredicate = [RCTAppleHealthKit predicateForSamplesOnDay:day];
-    NSPredicate *predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate]];
-    if (includeManuallyAdded == false) {
-        NSPredicate *manualDataPredicate = [NSPredicate predicateWithFormat:@"metadata.%K != YES", HKMetadataKeyWasUserEntered];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate, manualDataPredicate]];
-    }
     HKStatisticsQuery *query = [[HKStatisticsQuery alloc] initWithQuantityType:quantityType
                                                           quantitySamplePredicate:predicate
                                                           options:HKStatisticsOptionCumulativeSum
@@ -948,9 +942,9 @@
 //                                            HKPredicateKeyPathStartDate, endDate];
 //
 //    if (includeManuallyAdded == false) {
-//        NSPredicate *includeUserEntered = [NSPredicate predicateWithFormat:@"metadata.%K == %@",
+//        NSPredicate *includeManuallyAdded = [NSPredicate predicateWithFormat:@"metadata.%K == %@",
 //                     HKMetadataKeyWasUserEntered, includeManuallyAdded ? @"YES" : @"NO"];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeUserEntered]];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
 //    }
 //
 //    if (watchOnly) {

@@ -213,12 +213,6 @@ RCT_EXPORT_METHOD(getAnchoredWorkouts:(NSDictionary *)input callback:(RCTRespons
     [self workout_getAnchoredQuery:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getWatchAnchoredWorkouts:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
-{
-    [self _initializeHealthStore];
-    [self workout_getAnchoredQuery:input callback:callback];
-}
-
 RCT_EXPORT_METHOD(setObserver:(NSDictionary *)input)
 {
     [self _initializeHealthStore];
@@ -322,13 +316,6 @@ RCT_EXPORT_METHOD(getHeartRateSamples:(NSDictionary *)input callback:(RCTRespons
     [self _initializeHealthStore];
     [self vitals_getHeartRateSamples:input callback:callback];
 }
-
-RCT_EXPORT_METHOD(getWatchHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
-{
-    [self _initializeHealthStore];
-    [self vitals_getWatchHeartRateSamples:input callback:callback];
-}
-
 
 RCT_EXPORT_METHOD(getRestingHeartRate:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
 {
