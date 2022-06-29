@@ -122,11 +122,6 @@ declare module 'react-native-health' {
       callback: (err: string, results: Array<HealthValue>) => void,
     ): void
 
-    getAnchoredWorkouts(
-      options: HealthInputOptions,
-      callback: (err: HKErrorResponse, results: AnchoredQueryResults) => void,
-    ): void
-
     getDailyStepCountSamples(
       options: HealthInputOptions,
       callback: (err: string, results: Array<HealthValue>) => void,
@@ -197,10 +192,7 @@ declare module 'react-native-health' {
       callback: (err: string, results: HealthValue) => void,
     ): void
 
-    getHeartRateSamples(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getHeartRateSamples(options: HealthInputOptions): Promise<Array<HealthSample>>
 
     getRestingHeartRate(
       options: HealthInputOptions,
@@ -212,30 +204,20 @@ declare module 'react-native-health' {
       callback: (err: string, results: HealthValue[]) => void,
     ): void
 
-    getActiveEnergyBurned(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getCaloriesBurned(options:HealthInputOptions): Promise<Array<HealthValue>>
+    
+    getActiveEnergyBurned(options: HealthInputOptions): Promise<Array<HealthValue>>
 
-    getBasalEnergyBurned(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getBasalEnergyBurned(options: HealthInputOptions): Promise<Array<HealthValue>>
 
-    getAppleExerciseTime(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getAppleExerciseTime(options: HealthInputOptions): Promise<Array<HealthValue>>
 
     getAppleStandTime(
       options: HealthInputOptions,
       callback: (err: string, results: Array<HealthValue>) => void,
     ): void
 
-    getVo2MaxSamples(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getVo2MaxSamples(options: HealthInputOptions): Promise<Array<HealthSample>>
 
     getBodyTemperatureSamples(
       options: HealthInputOptions,
@@ -252,10 +234,7 @@ declare module 'react-native-health' {
       callback: (err: string, results: Array<HealthValue>) => void,
     ): void
 
-    getHeartRateVariabilitySamples(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getHeartRateVariabilitySamples(options: HealthInputOptions): Promise<Array<HealthSample>>
 
     getHeartbeatSeriesSamples(
       options: HealthInputOptions,
@@ -287,10 +266,7 @@ declare module 'react-native-health' {
       callback: (error: string, result: HealthValue) => void,
     ): void
 
-    getSleepSamples(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getSleepSamples(options: HealthInputOptions): Promise<Array<SleepSample>>
 
     getInfo(
       options: HealthUnitOptions,
@@ -304,16 +280,6 @@ declare module 'react-native-health' {
 
     saveMindfulSession(
       options: HealthValueOptions,
-      callback: (error: string, result: HealthValue) => void,
-    ): void
-
-    getWorkout(
-      options: HealthInputOptions,
-      callback: (err: string, results: HealthValue) => void,
-    ): void
-
-    saveWorkout(
-      options: HealthActivityOptions,
       callback: (error: string, result: HealthValue) => void,
     ): void
 
@@ -354,7 +320,7 @@ declare module 'react-native-health' {
 
     getElectrocardiogramSamples(
       options: HealthInputOptions,
-      callback: (err: string, results: ElectrocardiogramSampleValue[]) => void,
+      callback: (err: string, results: ElectrocardiogramSampleValue[]) => void
     ): void
 
     saveBodyFatPercentage(
@@ -389,10 +355,15 @@ declare module 'react-native-health' {
       callback: (err: string, results: Array<HealthActivitySummary>) => void,
     ): void
 
-    getWorkoutLocations(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<any>) => void,
+    /* Workout & Routes */
+    getAnchoredWorkouts(options: HealthInputOptions): Promise<AnchoredQueryResults>
+
+    saveWorkout(
+      options: HealthActivityOptions,
+      callback: (error: string, result: HealthValue) => void,
     ): void
+
+    getWorkoutLocations(options: HealthInputOptions): Promise<AnchoredQueryResults>
 
     getWorkoutByID(
       options: HealthInputOptions,
@@ -413,8 +384,37 @@ declare module 'react-native-health' {
     startDate: string
     endDate: string
   }
+
+  interface Device {
+    hardwareVersion: string | null,
+    name: string | null,
+    localID: string | null,
+    firmwareVersion: string | null,
+    UDID: string | null,
+    softwareVersion: string | null,
+    model: string | null,
+    manufacturer: string | null,
+  }
+
+  export interface ValueUnit {
+    value: number,
+    unit: string,
+  }
   export interface HealthValue extends BaseValue {
     value: number
+  }
+  export interface HealthSample extends HealthValue {
+    device: Device | null,
+    sourceId: string,
+    sourceName: string,
+    sourceType: string,
+    metadata: any,
+    isUserEntered: boolean,
+    isFromWatch: boolean,
+  }
+
+  export interface SleepSample extends HealthSample {
+    sleepCategory: number
   }
 
   export interface BloodPressureSampleValue extends BaseValue {
@@ -437,13 +437,14 @@ declare module 'react-native-health' {
     startDate?: string
     endDate?: string
     limit?: number
-    ascending?: boolean
     type?: HealthObserver
     date?: string
-    includeManuallyAdded?: boolean
     period?: number
     anchor?: string
     uuid?: string
+    ascending?: boolean
+    includeManuallyAdded?: boolean
+    watchOnly?: boolean
   }
 
   export interface HKWorkoutRouteInputOptions {
@@ -454,19 +455,29 @@ declare module 'react-native-health' {
     workout: any;
   }
 
-  export interface HKWorkoutQueriedSampleType {
+  export interface HKWorkoutLocation {
+    course:number
+    distance:number
+    timestamp:string  //"2022-06-24T08:47:45.979+0700",
+    speed: ValueUnit // { "unit":"m/s", "value":1.1444313526153564}
+    longitude:number
+    latitude:number
+    horizontalAccuracy:number //3.512094736099243,
+    verticalAccuracy:number //1.3269041776657104,
+    courseAccuracy:number,
+    speedAccuracy:ValueUnit,
+    altitude:number,
+  }
+
+  export interface HKWorkoutQueriedSampleType extends HealthSample {
     activityId: number
     activityName: string
-    calories: number
-    device: string
-    id: string
-    tracked: boolean
-    metadata: any
-    sourceName: string
-    sourceId: string
-    distance: number
-    start: string
-    end: string
+    totalEnergyBurned: ValueUnit
+    distance: ValueUnit
+    duration: ValueUnit
+    isIndoorWorkout: boolean
+    workoutEvents: Array<any>
+    locations: Array<any>
   }
 
   export interface ElectrocardiogramSampleValue extends BaseValue {
@@ -756,6 +767,11 @@ declare module 'react-native-health' {
   }
 
   export interface AnchoredQueryResults {
+    anchor: string
+    data: Array<HKWorkoutQueriedSampleType>
+  }
+
+  export interface WorkoutAndRouteLocationResults {
     anchor: string
     data: Array<HKWorkoutQueriedSampleType>
   }

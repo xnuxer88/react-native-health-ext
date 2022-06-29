@@ -18,9 +18,6 @@
 - (void)fitness_getStepCountOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
 {
     NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
-    
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     
     if(date == nil) {
@@ -33,15 +30,6 @@
 
     NSPredicate *dayPredicate = [RCTAppleHealthKit predicateForSamplesOnDay:date];
     NSPredicate *predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate]];
-//    if (includeManuallyAdded == false) {
-//        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
-//    }
-//
-//    if (watchOnly) {
-//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-//    }
     
     [self fetchSumOfSamplesOnDayForType:stepCountType
                                     unit:stepsUnit
@@ -105,7 +93,7 @@
 }
 
 
-- (void)fitness_getDailyStepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)fitness_getDailyStepSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
 {
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit countUnit]];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
@@ -115,11 +103,12 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
     
@@ -132,10 +121,10 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (watchOnly) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-    }
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
 
     HKQuantityType *stepCountType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount];
 
@@ -149,10 +138,13 @@
                                        ascending:ascending
                                       completion:^(NSArray *arr, NSError *err){
         if (err != nil) {
-            callback(@[RCTJSErrorFromNSError(err)]);
+            reject(@"Error Callback", [NSString stringWithFormat:@"error getting walkingRunning distance: %@", err.localizedDescription], err);
+//            callback(@[RCTJSErrorFromNSError(err)]);
             return;
+        } else {
+            resolve(arr);
         }
-        callback(@[[NSNull null], arr]);
+//        callback(@[[NSNull null], arr]);
     }];
 }
 
@@ -216,16 +208,30 @@
 {
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
     NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
-    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:true];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    if(date == nil){
+        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        return;
+    }
     
     HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWalkingRunning];
     
     NSPredicate *dayPredicate = [RCTAppleHealthKit predicateForSamplesOnDay:date];
     NSPredicate *predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[dayPredicate]];
-    if (includeManuallyAdded == false) {
-        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
-    }
+    
+//    if (includeManuallyAdded == false) {
+//        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+//    }
+//
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
 
     [self fetchSumOfSamplesOnDayForType:quantityType unit:unit day:date predicate:predicate completion:^(double distance, NSDate *startDate, NSDate *endDate, NSError *error) {
         if (!distance && distance != 0) {
@@ -244,7 +250,7 @@
     }];
 }
 
-- (void)fitness_getDailyDistanceWalkingRunningSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)fitness_getDailyDistanceWalkingRunningSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
 {
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
@@ -254,11 +260,11 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
         return;
     }
     
@@ -271,10 +277,10 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (watchOnly) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-    }
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
 
     HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWalkingRunning];
 
@@ -286,13 +292,14 @@
                                          endDate:endDate
                                            limit:limit
                                        ascending:ascending
-                                      completion:^(NSArray *arr, NSError *err){
+                                      completion:^(NSArray *results, NSError *err){
                                           if (err != nil) {
                                               NSLog(@"error with fetchCumulativeSumStatisticsCollection: %@", err);
-                                              callback(@[RCTMakeError(@"error with fetchCumulativeSumStatisticsCollection", err, nil)]);
+//                                              callback(@[RCTMakeError(@"error with fetchCumulativeSumStatisticsCollection", err, nil)]);
+                                              reject(@"Error Callback", [NSString stringWithFormat:@"error getting walkingRunning distance: %@", err.localizedDescription], err);
                                               return;
                                           }
-                                          callback(@[[NSNull null], arr]);
+                                          resolve(results);
                                       }];
 }
 
@@ -327,7 +334,7 @@
     }];
 }
 
-- (void)fitness_getDailyDistanceSwimmingSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback API_AVAILABLE(ios(10.0))
+- (void)fitness_getDailyDistanceSwimmingSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject API_AVAILABLE(ios(10.0))
 {
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
@@ -337,11 +344,12 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
     
@@ -354,10 +362,10 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (watchOnly) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-    }
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
     
 
     HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceSwimming];
@@ -370,12 +378,13 @@
                                          endDate:endDate
                                            limit:limit
                                        ascending:ascending
-                                      completion:^(NSArray *arr, NSError *err){
+                                      completion:^(NSArray *results, NSError *err){
                                           if (err != nil) {
-                                              callback(@[RCTJSErrorFromNSError(err)]);
+                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting swimming distance: %@", err.localizedDescription], err);
                                               return;
                                           }
-                                          callback(@[[NSNull null], arr]);
+                                            resolve(results);
+//                                          callback(@[[NSNull null], arr]);
                                       }];
 }
 
@@ -410,7 +419,7 @@
     }];
 }
 
-- (void)fitness_getDailyDistanceCyclingSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)fitness_getDailyDistanceCyclingSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject;
 {
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
@@ -420,11 +429,12 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
     
@@ -437,10 +447,10 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (watchOnly) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-    }
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
 
     HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceCycling];
 
@@ -452,12 +462,14 @@
                                          endDate:endDate
                                            limit:limit
                                        ascending:ascending
-                                      completion:^(NSArray *arr, NSError *err){
+                                      completion:^(NSArray *results, NSError *err){
                                           if (err != nil) {
-                                              callback(@[RCTJSErrorFromNSError(err)]);
+                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting cycling distance: %@", err.localizedDescription], err);
+//                                              callback(@[RCTJSErrorFromNSError(err)]);
                                               return;
                                           }
-                                          callback(@[[NSNull null], arr]);
+                                            resolve(results);
+//                                          callback(@[[NSNull null], arr]);
                                       }];
 }
 
@@ -502,7 +514,7 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
   
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -519,10 +531,10 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (watchOnly) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-    }
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
 
     HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierFlightsClimbed];
 

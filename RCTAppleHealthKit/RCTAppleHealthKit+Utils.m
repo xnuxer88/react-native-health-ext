@@ -607,7 +607,57 @@
     return workoutRoute;
 }
 
-+ (NSDictionary *)serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *> *)locations {
++ (bool)validateFromWatch:(HKSample *)sample {
+    NSString *description = sample.description ?: @"";
+    NSError *error = NULL;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
+                                                                           options:NSRegularExpressionCaseInsensitive
+                                                                             error:&error];
+                                  
+    
+    NSInteger numberOfMatches = [regex numberOfMatchesInString:description
+                                                        options:0
+                                                          range:NSMakeRange(0, [description length])];
+
+    return numberOfMatches > 0;
+}
+
++ (bool)validateUserManualInput:(HKSample *)sample {
+    bool isUserEntered = false;
+    if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+        isUserEntered = true;
+    }
+    return isUserEntered;
+}
+
++ (NSString *)getSourceType:(HKSample *)sample {
+    id sourceType = [NSNull null];
+    if (@available(iOS 11.0, *)) {
+        sourceType = [[sample sourceRevision] productType];
+    } else {
+        sourceType = [[sample device] name];
+        if (!sourceType) {
+            sourceType = [NSNull null];
+        }
+    }
+    
+    return sourceType;
+}
+
++ (NSDictionary *)serializeDevice:(HKSample *)sample {
+    return @{
+        @"UDID": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+        @"localID": [[sample device] localIdentifier] ?: [NSNull null],
+        @"name": [[sample device] name] ?: [NSNull null],
+        @"model": [[sample device] model] ?: [NSNull null],
+        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+        @"hardwareVersion": [[sample device] hardwareVersion] ?: [NSNull null],
+        @"softwareVersion": [[sample device] softwareVersion] ?: [NSNull null],
+        @"firmwareVersion": [[sample device] firmwareVersion] ?: [NSNull null],
+    };
+}
+
++ (NSMutableDictionary *)serializeWorkout:(HKWorkout *)workoutSample {
     NSMutableDictionary *fullSerializedDictionary = [NSMutableDictionary new];
     NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
     if ([workoutSample totalDistance] != nil) {
@@ -625,33 +675,10 @@
     
     [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
      
-    
-    bool isUserEntered = false;
-    if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-        isUserEntered = true;
-    }
-//     NSNumber *isTracked = @YES; // or [NSNumber numberWithBool:YES] the old way
-//     if ([[workoutSample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-//         isTracked = @NO;
-//     }
-    
-    NSDictionary *device = @{
-        @"name": [[workoutSample device] name] ?: [NSNull null],
-        @"model": [[workoutSample device] model] ?: [NSNull null],
-        @"manufacturer": [[workoutSample device] manufacturer] ?: [NSNull null],
-        @"UDIDDevice": [[workoutSample device] UDIDeviceIdentifier] ?: [NSNull null],
-        @"LocalID": [[workoutSample device] localIdentifier] ?: [NSNull null],
-    };
-
-    id sourceType = [NSNull null];
-    if (@available(iOS 11.0, *)) {
-        sourceType = [[workoutSample sourceRevision] productType];
-    } else {
-        sourceType = [[workoutSample device] name];
-        if (!sourceType) {
-            sourceType = [NSNull null];
-        }
-    }
+    NSDictionary *device = [self serializeDevice:workoutSample];
+    bool isFromWatch = [self validateFromWatch:workoutSample];
+    bool isUserEntered = [self validateUserManualInput:workoutSample];
+    id sourceType = [self getSourceType:workoutSample];
      
      if (@available(iOS 10.0, *)) {
          if (workoutSample.totalSwimmingStrokeCount) {
@@ -697,9 +724,107 @@
     NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
     NSNumber *activityType = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
     NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
+    
+    bool isIndoorWorkout = true;
     if ([workoutSample metadata] != nil) {
         metadata = [workoutSample metadata];
+        
+        if ([[workoutSample metadata][HKMetadataKeyIndoorWorkout] intValue] == 0) {
+            isIndoorWorkout = false;
+        }
     }
+    
+    [fullSerializedDictionary addEntriesFromDictionary:@{
+        @"id": [[workoutSample UUID] UUIDString],
+        @"startDateTime" : startDateString,
+        @"endDateTime" : endDateString,
+        @"activityName": type,
+        @"activityType" : activityType,
+        @"isUserEntered": @(isUserEntered),
+        @"isFromWatch": @(isFromWatch),
+        @"isIndoorWorkout": @(isIndoorWorkout),
+        @"device": device,
+        @"metadata": metadata,
+        @"sourceName" : [[[workoutSample sourceRevision] source] name],
+        @"sourceType" : sourceType,
+        @"sourceId" : [[[workoutSample sourceRevision] source] bundleIdentifier],
+    }];
+    
+    return fullSerializedDictionary;
+}
+
++ (NSDictionary *)serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *> *)locations {
+    NSMutableDictionary *fullSerializedDictionary = [self serializeWorkout: workoutSample];
+//    NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
+//    if ([workoutSample totalDistance] != nil) {
+//        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
+//        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit meterUnit]]],@"unit":unitString} forKey:@"totalDistance"];
+//    } else {
+//        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalDistance"];
+//    }
+//
+//    if ([workoutSample totalEnergyBurned] != nil) {
+//        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[[workoutSample totalEnergyBurned]doubleValueForUnit:[HKUnit kilocalorieUnit]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
+//    } else {
+//        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalEnergyBurned"];
+//    }
+//
+//    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
+//
+//    NSDictionary *device = [self serializeDevice:workoutSample];
+//    bool isFromWatch = [self validateFromWatch:workoutSample];
+//    bool isUserEntered = [self validateUserManualInput:workoutSample];
+//    id sourceType = [self getSourceType:workoutSample];
+//
+//     if (@available(iOS 10.0, *)) {
+//         if (workoutSample.totalSwimmingStrokeCount) {
+//             NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalSwimmingStrokeCount];
+//             [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalSwimmingStrokeCount doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalSwimmingStrokeCount"];
+//
+//         }
+//     }
+//
+//     if (@available(iOS 11.0, *)) {
+//         if (workoutSample.totalFlightsClimbed) {
+//                 NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalFlightsClimbed];
+//                 [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalFlightsClimbed doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalFlightsClimbed"];
+//         }
+//     }
+//
+//     if (workoutSample.workoutEvents != nil) {
+//         NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
+//         for (HKWorkoutEvent *event in workoutSample.workoutEvents) {
+//             NSDictionary *elem = nil;
+//             if (@available(iOS 11.0, *)) {
+//                 elem = @{
+//                     @"date" : event.date,
+//                     @"dateInterval" : event.dateInterval,
+//                     @"HKWorkoutEventType": [NSNumber numberWithInt:event.type],
+//                     @"metadata": event.metadata,
+//                 };
+//             } else {
+//                 elem = @{
+//                     @"date" : event.date,
+//                     @"dateInterval" : @(0),
+//                     @"HKWorkoutEventType": [NSNumber numberWithInt:event.type],
+//                     @"metadata": @{},
+//                 };
+//             }
+//             [data addObject:elem];
+//         }
+//         [fullSerializedDictionary setObject:data forKey:@"workoutEvents"];
+//     }
+//
+//    NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.startDate];
+//    NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.endDate];
+//    NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
+//    NSNumber *activityType = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
+//    NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
+//    if ([workoutSample metadata] != nil) {
+//        metadata = [workoutSample metadata];
+//    }
+//
+    
     
     
     NSMutableArray *locationData = [NSMutableArray arrayWithCapacity:1];
@@ -750,20 +875,22 @@
         }];
     }
     
-    [fullSerializedDictionary addEntriesFromDictionary:@{
-        @"id": [[workoutSample UUID] UUIDString],
-        @"startDateTime" : startDateString,
-        @"endDateTime" : endDateString,
-        @"activityName": type,
-        @"activityType" : activityType,
-        @"isUserEntered": @(isUserEntered),
-        @"device": device,
-        @"locations": locationData,
-        @"metadata":metadata,
-        @"sourceName" : [[[workoutSample sourceRevision] source] name],
-        @"sourceType" : sourceType,
-        @"sourceId" : [[[workoutSample sourceRevision] source] bundleIdentifier],
-    }];
+//    [fullSerializedDictionary addEntriesFromDictionary:@{
+//        @"id": [[workoutSample UUID] UUIDString],
+//        @"startDateTime" : startDateString,
+//        @"endDateTime" : endDateString,
+//        @"activityName": type,
+//        @"activityType" : activityType,
+//        @"isUserEntered": @(isUserEntered),
+//        @"isFromWatch": @(isFromWatch),
+//        @"device": device,
+//        @"locations": locationData,
+//        @"metadata":metadata,
+//        @"sourceName" : [[[workoutSample sourceRevision] source] name],
+//        @"sourceType" : sourceType,
+//        @"sourceId" : [[[workoutSample sourceRevision] source] bundleIdentifier],
+//    }];
+    [fullSerializedDictionary setObject:locationData forKey:@"locations"];
     
     return fullSerializedDictionary;
 }

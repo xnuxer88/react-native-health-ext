@@ -88,28 +88,18 @@
                     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
-                    bool isUserEntered = false;
-                    if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                        isUserEntered = true;
-                    }
-
-                    id sourceType = [NSNull null];
-                    if (@available(iOS 11.0, *)) {
-                        sourceType = [[sample sourceRevision] productType];
-                    } else {
-                        sourceType = [[sample device] name];
-                        if (!sourceType) {
-                            sourceType = [NSNull null];
-                        }
-                    }
-
-                    NSDictionary *device = @{
-                        @"name": [[sample device] name] ?: [NSNull null],
-                        @"model": [[sample device] model] ?: [NSNull null],
-                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-                    };
+                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    id sourceType = [RCTAppleHealthKit getSourceType:sample];
+//                    NSDictionary *device = @{
+//                        @"name": [[sample device] name] ?: [NSNull null],
+//                        @"model": [[sample device] model] ?: [NSNull null],
+//                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+//                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+//                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
+//                    };
+                    
                     
 //                    NSDictionary *elem = @{
 //                            @"value" : @(value),
@@ -135,7 +125,125 @@
                             @"endDate" : endDateString,
                             @"metadata": [sample metadata],
                             @"device": device,
-                            @"isUserEntered": @(isUserEntered)
+                            @"isUserEntered": @(isUserEntered),
+                            @"isFromWatch": @(isFromWatch)
+                    };
+
+                    [data addObject:elem];
+                }
+
+                completion(data, error);
+            });
+        }
+    };
+
+    HKSampleQuery *query = [[HKSampleQuery alloc] initWithSampleType:quantityType
+                                                           predicate:predicate
+                                                               limit:lim
+                                                     sortDescriptors:@[timeSortDescriptor]
+                                                      resultsHandler:handlerBlock];
+
+    [self.healthStore executeQuery:query];
+}
+
+// for vo2max data (not returning device)
+- (void)fetchQuantitySamplesOfTypeWithNoDevice:(HKQuantityType *)quantityType
+                              unit:(HKUnit *)unit
+                         predicate:(NSPredicate *)predicate
+                         ascending:(BOOL)asc
+                         watchOnly:(BOOL)watchOnly
+                             limit:(NSUInteger)lim
+                        completion:(void (^)(NSArray *, NSError *))completion {
+
+    NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate
+                                                                       ascending:asc];
+
+    // declare the block
+    void (^handlerBlock)(HKSampleQuery *query, NSArray *results, NSError *error);
+    // create and assign the block
+    handlerBlock = ^(HKSampleQuery *query, NSArray *results, NSError *error) {
+        if (!results) {
+            if (completion) {
+                completion(nil, error);
+            }
+            return;
+        }
+
+        if (completion) {
+            NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+
+                for (HKQuantitySample *sample in results) {
+
+                    HKQuantity *quantity = sample.quantity;
+                    double value = [quantity doubleValueForUnit:unit];
+
+                    NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
+                    NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
+
+//                    if (watchOnly) {
+//                        NSString *description = sample.description ?: @"";
+//                        NSError *error = NULL;
+//                        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b" options:NSRegularExpressionCaseInsensitive error:&error];
+//
+//                        NSInteger numberOfMatches = [regex numberOfMatchesInString:description
+//                                                                            options:0
+//                                                                              range:NSMakeRange(0, [description length])];
+//                        if (numberOfMatches <= 0) {
+//                            continue; // skip if the source data type is not from apple health
+//                        }
+//                    }
+                
+
+//                    id sourceType = [NSNull null];
+//                    if (@available(iOS 11.0, *)) {
+//                        sourceType = [[sample sourceRevision] productType];
+//                    } else {
+//                        sourceType = [[sample device] name];
+//                        if (!sourceType) {
+//                            sourceType = [NSNull null];
+//                        }
+//                    }
+
+//                    NSDictionary *device = @{
+//                        @"name": [[sample device] name] ?: [NSNull null],
+//                        @"model": [[sample device] model] ?: [NSNull null],
+//                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+//                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+//                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
+//                    };
+                    
+//                    NSDictionary *elem = @{
+//                            @"value" : @(value),
+//                            @"id" : [[sample UUID] UUIDString],
+//                            @"sourceName" : [[[sample sourceRevision] source] name],
+//                            @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+//                            @"sourceType": sourceType,
+//                            @"startDate" : startDateString,
+//                            @"endDate" : endDateString,
+//                            @"metadata": [sample metadata],
+//                            @"device": device,
+//                            @"isUserEntered": @(isUserEntered)
+//                    };
+                    
+                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    id sourceType = [RCTAppleHealthKit getSourceType:sample];
+                    
+                    NSDictionary *elem = @{
+                            @"value" : @(value),
+                            @"id" : [[sample UUID] UUIDString],
+                            @"sourceName" : [[[sample sourceRevision] source] name],
+                            @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+                            @"sourceType": sourceType,
+                            @"startDate" : startDateString,
+                            @"endDate" : endDateString,
+                            @"metadata": [sample metadata],
+                            @"device": device,
+                            @"isUserEntered": @(isUserEntered),
+                            @"isFromWatch": @(isFromWatch)
                     };
 
                     [data addObject:elem];
@@ -191,28 +299,34 @@
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
                     
                     
-                    bool isUserEntered = false;
-                    if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                        isUserEntered = true;
-                    }
+//                    bool isUserEntered = false;
+//                    if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+//                        isUserEntered = true;
+//                    }
+//
+//                    id sourceType = [NSNull null];
+//                    if (@available(iOS 11.0, *)) {
+//                        sourceType = [[sample sourceRevision] productType];
+//                    } else {
+//                        sourceType = [[sample device] name];
+//                        if (!sourceType) {
+//                            sourceType = [NSNull null];
+//                        }
+//                    }
 
-                    id sourceType = [NSNull null];
-                    if (@available(iOS 11.0, *)) {
-                        sourceType = [[sample sourceRevision] productType];
-                    } else {
-                        sourceType = [[sample device] name];
-                        if (!sourceType) {
-                            sourceType = [NSNull null];
-                        }
-                    }
-
-                    NSDictionary *device = @{
-                        @"name": [[sample device] name] ?: [NSNull null],
-                        @"model": [[sample device] model] ?: [NSNull null],
-                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-                    };
+//                    NSDictionary *device = @{
+//                        @"name": [[sample device] name] ?: [NSNull null],
+//                        @"model": [[sample device] model] ?: [NSNull null],
+//                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+//                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+//                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
+//                    };
+//                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                    
+                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    id sourceType = [RCTAppleHealthKit getSourceType:sample];
                     
                     NSDictionary *elem = @{
                             @"value" : @(value),
@@ -224,7 +338,8 @@
                             @"endDate" : endDateString,
                             @"metadata": [sample metadata],
                             @"device": device,
-                            @"isUserEntered": @(isUserEntered)
+                            @"isUserEntered": @(isUserEntered),
+                            @"isFromWatch": @(isFromWatch)
                     };
 
                     [data addObject:elem];
@@ -280,34 +395,41 @@
                             NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                             NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
-                            bool isUserEntered = false;
-                            if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                                isUserEntered = true;
-                            }
-
-                            NSString* device = @"";
-                            if (@available(iOS 11.0, *)) {
-                                device = [[sample sourceRevision] productType];
-                            } else {
-                                device = [[sample device] name];
-                                if (!device) {
-                                    device = @"iPhone";
-                                }
-                            }
+//                            bool isUserEntered = false;
+//                            if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+//                                isUserEntered = true;
+//                            }
+//
+//                            NSString* device = @"";
+//                            if (@available(iOS 11.0, *)) {
+//                                device = [[sample sourceRevision] productType];
+//                            } else {
+//                                device = [[sample device] name];
+//                                if (!device) {
+//                                    device = @"iPhone";
+//                                }
+//                            }
+                            
+                            NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                            bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                            bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                            id sourceType = [RCTAppleHealthKit getSourceType:sample];
 
                             NSDictionary *elem = @{
                                                    @"activityId" : [NSNumber numberWithInt:[sample workoutActivityType]],
                                                    @"id" : [[sample UUID] UUIDString],
                                                    @"activityName" : type,
                                                    @"calories" : @(energy),
-                                                   @"isUserEntered" : @(isUserEntered),
                                                    @"metadata" : [sample metadata],
                                                    @"sourceName" : [[[sample sourceRevision] source] name],
                                                    @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+                                                   @"sourceType": sourceType,
                                                    @"device": device,
                                                    @"distance" : @(distance),
                                                    @"start" : startDateString,
-                                                   @"end" : endDateString
+                                                   @"end" : endDateString,
+                                                   @"isUserEntered" : @(isUserEntered),
+                                                   @"isFromWatch" : @(isFromWatch),
                                                    };
 
                             [data addObject:elem];
@@ -329,26 +451,33 @@
                             NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                             NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
-                            bool isTracked = true;
-                            if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                                isTracked = false;
-                            }
-
-                            NSString* device = @"";
-                            if (@available(iOS 11.0, *)) {
-                                device = [[sample sourceRevision] productType];
-                            } else {
-                                device = [[sample device] name];
-                                if (!device) {
-                                    device = @"iPhone";
-                                }
-                            }
+//                            bool isTracked = true;
+//                            if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+//                                isTracked = false;
+//                            }
+//
+//                            NSString* device = @"";
+//                            if (@available(iOS 11.0, *)) {
+//                                device = [[sample sourceRevision] productType];
+//                            } else {
+//                                device = [[sample device] name];
+//                                if (!device) {
+//                                    device = @"iPhone";
+//                                }
+//                            }
+                            
+                            NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                            bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                            bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                            id sourceType = [RCTAppleHealthKit getSourceType:sample];
 
                             NSDictionary *elem = @{
                                                    valueType : @(value),
-                                                   @"tracked" : @(isTracked),
+                                                   @"isUserEntered" : @(isUserEntered),
+                                                   @"isFromWatch": @(isFromWatch),
                                                    @"sourceName" : [[[sample sourceRevision] source] name],
                                                    @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+                                                   @"sourceType": sourceType,
                                                    @"device": device,
                                                    @"start" : startDateString,
                                                    @"end" : endDateString
@@ -518,58 +647,71 @@ API_AVAILABLE(ios(12.0))
             dispatch_async(dispatch_get_main_queue(), ^{
                 for (HKWorkout *sample in sampleObjects) {
                     @try {
-                        double energy =  [[sample totalEnergyBurned] doubleValueForUnit:[HKUnit kilocalorieUnit]];
-                        double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit meterUnit]];
-                        NSTimeInterval duration = [sample duration];
+//                        double energy =  [[sample totalEnergyBurned] doubleValueForUnit:[HKUnit kilocalorieUnit]];
+//                        double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit meterUnit]];
+//                        NSTimeInterval duration = [sample duration];
+//
+//                        NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
+//                        NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
 
-                        NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
-                        NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
-
-                        bool isUserEntered = false;
-                        if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                            isUserEntered = true;
-                        }
-
-                        NSDictionary *device = @{
-                            @"name": [[sample device] name] ?: [NSNull null],
-                            @"model": [[sample device] model] ?: [NSNull null],
-                            @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-                            @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-                            @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-                        };
-
-
-                        id sourceType = [NSNull null];
-                        if (@available(iOS 11.0, *)) {
-                            sourceType = [[sample sourceRevision] productType];
-                        } else {
-                            sourceType = [[sample device] name];
-                            if (!sourceType) {
-                                sourceType = [NSNull null];
-                            }
-                        }
-
-                        NSNumber *activityId = [NSNumber numberWithInt:[sample workoutActivityType]];
-                        NSString *activityIdString = [activityId stringValue];
-                        NSString *activityName = [RCTAppleHealthKit stringForHKWorkoutActivityType:[sample workoutActivityType]];
+//                        bool isUserEntered = false;
+//                        if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
+//                            isUserEntered = true;
+//                        }
+//
+//                        NSDictionary *device = @{
+//                            @"name": [[sample device] name] ?: [NSNull null],
+//                            @"model": [[sample device] model] ?: [NSNull null],
+//                            @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
+//                            @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
+//                            @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
+//                        };
+//
+//
+//                        id sourceType = [NSNull null];
+//                        if (@available(iOS 11.0, *)) {
+//                            sourceType = [[sample sourceRevision] productType];
+//                        } else {
+//                            sourceType = [[sample device] name];
+//                            if (!sourceType) {
+//                                sourceType = [NSNull null];
+//                            }
+//                        }
                         
-                        NSDictionary *elem = @{
-                                               @"activityId" : activityIdString,
-                                               @"id" : [[sample UUID] UUIDString],
-                                               @"activityName" : activityName,
-                                               @"calories" : @(energy),
-                                               @"duration" : @(duration),
-                                               @"isUserEntered" : @(isUserEntered),
-                                               @"metadata" : [sample metadata],
-                                               @"sourceName" : [[[sample sourceRevision] source] name],
-                                               @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
-                                               @"sourceType": sourceType,
-                                               @"device": device,
-                                               @"distance" : @(distance),
-                                               @"start" : startDateString,
-                                               @"end" : endDateString
-                                               };
+//                        NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+//                        bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+//                        bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+//                        id sourceType = [RCTAppleHealthKit getSourceType:sample];
+//
+//                        bool isIndoorWorkout = true;
+//                        if ([[sample metadata][HKMetadataKeyIndoorWorkout] intValue] == 0) {
+//                            isIndoorWorkout = false;
+//                        }
+//
+
+//                        NSNumber *activityId = [NSNumber numberWithInt:[sample workoutActivityType]];
+//                        NSString *activityIdString = [activityId stringValue];
+//                        NSString *activityName = [RCTAppleHealthKit stringForHKWorkoutActivityType:[sample workoutActivityType]];
                         
+//                        NSDictionary *elem = @{
+//                                               @"activityId" : activityIdString,
+//                                               @"id" : [[sample UUID] UUIDString],
+//                                               @"activityName" : activityName,
+//                                               @"calories" : @(energy),
+//                                               @"duration" : @(duration),
+//                                               @"metadata" : [sample metadata],
+//                                               @"sourceName" : [[[sample sourceRevision] source] name],
+//                                               @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+//                                               @"sourceType": sourceType,
+//                                               @"device": device,
+//                                               @"distance" : @(distance),
+//                                               @"start" : startDateString,
+//                                               @"end" : endDateString,
+//                                               @"isUserEntered" : @(isUserEntered),
+//                                               @"isFromWatch" : @(isFromWatch),
+//                                               @"isIndoorWorkout": @(isIndoorWorkout)
+//                                            };
+                        NSDictionary *elem = [RCTAppleHealthKit serializeWorkout:sample];
 
                         [data addObject:elem];
                     } @catch (NSException *exception) {
@@ -623,61 +765,44 @@ API_AVAILABLE(ios(12.0))
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 for (HKCategorySample *sample in results) {
-                    NSString *description = sample.description ?: @"";
-                    NSError *error = NULL;
+//                    NSString *description = sample.description ?: @"";
+//                    NSError *error = NULL;
                     
-                    if (watchOnly) {
-                        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
-                                                                                               options:NSRegularExpressionCaseInsensitive
-                                                                                                 error:&error];
-                                                      
-                        
-                        NSInteger numberOfMatches = [regex numberOfMatchesInString:description
-                                                                            options:0
-                                                                              range:NSMakeRange(0, [description length])];
-                        if (numberOfMatches <= 0) {
-                            continue; // skip if the source data type is not from apple health
-                        }
-                    }
+//                    if (watchOnly) {
+//                        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
+//                                                                                               options:NSRegularExpressionCaseInsensitive
+//                                                                                                 error:&error];
+//
+//
+//                        NSInteger numberOfMatches = [regex numberOfMatchesInString:description
+//                                                                            options:0
+//                                                                              range:NSMakeRange(0, [description length])];
+//                        if (numberOfMatches <= 0) {
+//                            continue; // skip if the source data type is not from apple health
+//                        }
+//                    }
                     
 
                     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
-
-                    NSDictionary *device = @{
-                        @"name": [[sample device] name] ?: [NSNull null],
-                        @"model": [[sample device] model] ?: [NSNull null],
-                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-                    };
                     
-                    bool isUserEntered = false;
-                    if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-                        isUserEntered = true;
-                    }
-
-                    id sourceType = [NSNull null];
-                    if (@available(iOS 11.0, *)) {
-                        sourceType = [[sample sourceRevision] productType];
-                    } else {
-                        sourceType = [[sample device] name];
-                        if (!sourceType) {
-                            sourceType = [NSNull null];
-                        }
-                    }
+                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    id sourceType = [RCTAppleHealthKit getSourceType:sample];
                     
                     NSDictionary *elem = @{
-                        @"uuid" : [sample UUID],
+                        @"id" : [[sample UUID] UUIDString],
                         @"sleepCategory" : @(sample.value),
                         @"startDate" : startDateString,
                         @"endDate" : endDateString,
                         @"device" : device,
                         @"sourceType": sourceType,
                         @"sourceName" : [[[sample sourceRevision] source] name] ?: [NSNull null],
-                        @"sourceMetaData" : [sample metadata] ?: [NSNull null],
+                        @"metadata" : [sample metadata] ?: [NSNull null],
                         @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier] ?: [NSNull null],
-                        @"isUserEntered": @(isUserEntered)
+                        @"isUserEntered": @(isUserEntered),
+                        @"isFromWatch": @(isFromWatch)
                     };
                     
                     [data addObject: elem];
@@ -1044,16 +1169,27 @@ API_AVAILABLE(ios(12.0))
 
                     NSString *activityName = [numberToWorkoutNameDictionary objectForKey: activityNumber];
 
-                    if (activityName) {
-                        NSDictionary *elem = @{
-                            @"activityName" : activityName,
-                            @"calories" : @(energy),
-                            @"distance" : @(distance),
-                            @"startDate" : [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate],
-                            @"endDate" : [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate]
-                        };
-                        [data addObject:elem];
-                    }
+                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    id sourceType = [RCTAppleHealthKit getSourceType:sample];
+                    
+                    NSDictionary *elem = @{
+                        @"id": [[sample UUID] UUIDString],
+                        @"sourceName" : [[[sample sourceRevision] source] name] ?: [NSNull null],
+                        @"sourceMetaData" : [sample metadata] ?: [NSNull null],
+                        @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier] ?: [NSNull null],
+                        @"activityName" : activityName,
+                        @"calories" : @(energy),
+                        @"distance" : @(distance),
+                        @"startDate" : [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate],
+                        @"endDate" : [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate],
+                        @"isUserEntered": @(isUserEntered),
+                        @"isFromWatch": @(isFromWatch),
+                        @"sourceType": sourceType,
+                        @"device": device,
+                    };
+                    [data addObject:elem];
                 }
                 completion(data, error);
             });
@@ -1348,15 +1484,25 @@ API_AVAILABLE(ios(11.0))
                 completion:^(NSArray<CLLocation *> *locations, NSError *error) {
                 tally += 1;
                 if (error) {
-                    if (tally == [workouts count]) {
-                        completion(@{@"data": results}, nil);
-                    }
+                    completion(nil, error);
+//                    if (tally == [workouts count]) {
+//                        completion(@{
+//                            @"data": results,
+//                            @"anchor": newAnchor
+//                        }, nil);
+//                        return;
+//                    } else {
+//                        completion(nil, error);
+//                    }
                     return;
                 }
                 
                 [results addObject:[RCTAppleHealthKit serializeWorkoutRouteLocations:workout locations:locations]];
                 if (tally == [workouts count]) {
-                    completion(@{@"data": results }, error);
+                    completion(@{
+                        @"data": results,
+                        @"anchor": newAnchor
+                    }, error);
                 }
             }];
         }

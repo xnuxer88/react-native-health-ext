@@ -13,7 +13,7 @@
 @implementation RCTAppleHealthKit (Methods_Sleep)
 
 
-- (void)sleep_getSleepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)sleep_getSleepSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
 {
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
@@ -21,7 +21,7 @@
     BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
         return;
     }
     
@@ -42,10 +42,10 @@
                                 watchOnly:watchOnly
                                      completion:^(NSArray *results, NSError *error) {
                                          if(results){
-                                             callback(@[[NSNull null], results]);
+                                             resolve(results);
                                              return;
                                          } else {
-                                             callback(@[RCTJSErrorFromNSError(error)]);
+                                             reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
                                              return;
                                          }
                                      }];

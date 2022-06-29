@@ -13,8 +13,7 @@
 @implementation RCTAppleHealthKit (Methods_Vitals)
 
 
-- (void)vitals_getHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
-{
+- (void)vitals_getHeartRateSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
     HKQuantityType *heartRateType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRate];
 
     HKUnit *count = [HKUnit countUnit];
@@ -22,14 +21,16 @@
 
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[count unitDividedByUnit:minute]];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
@@ -39,10 +40,12 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
     }
     
-    if (watchOnly) {
-        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchOnlyPredicate]];
-    }
+//    if (watchOnly) {
+//        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchOnlyPredicate]];
+//    }
+    
+//    NSPredicate *strava = [HKQuery predicateForObjectsFromSource:[HKSource init]]
     
     [self fetchQuantitySamplesOfType:heartRateType
                                 unit:unit
@@ -51,17 +54,20 @@
                                limit:limit
                           completion:^(NSArray *results, NSError *error) {
                               if(results){
-                                  callback(@[[NSNull null], results]);
+                                  resolve(results);
+//                                  callback(@[[NSNull null], results]);
                                   return;
                               } else {
                                   NSLog(@"error getting heart rate samples: %@", error);
-                                  callback(@[RCTMakeError(@"error getting heart rate samples:", error, nil)]);
+//                                  callback(@[RCTMakeError(@"error getting heart rate samples:", error, nil)]);
+                                  reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting heart rate samples: %@", error.localizedDescription], error);
                                   return;
                               }
                           }];
 }
 
 - (void)vitals_getRestingHeartRate:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+    API_AVAILABLE(ios(11.0))
 {
     HKQuantityType *restingHeartRateType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierRestingHeartRate];
 
@@ -97,6 +103,7 @@
 }
 
 - (void)vitals_getWalkingHeartRateAverage:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+API_AVAILABLE(ios(11.0))
 {
     HKQuantityType *restingHeartRateType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierWalkingHeartRateAverage];
 
@@ -131,20 +138,49 @@
                           }];
 }
 
-- (void)vitals_getHeartRateVariabilitySamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)vitals_getHeartRateVariabilitySamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject API_AVAILABLE(ios(11.0))
 {
     HKQuantityType *hrvType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRateVariabilitySDNN];
 
     HKUnit *unit = [HKUnit secondUnit];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
-    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    
     if(startDate == nil){
-        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
         return;
     }
+    
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
+    
+    
+//    [self fetchCumulativeSumStatisticsCollection:hrvType unit:unit period:period predicate:predicate startDate:startDate endDate:endDate limit:limit ascending:ascending completion:^(NSArray *results, NSError *error) {
+//        if(results){
+//            resolve(results);
+//            return;
+//        } else {
+//            NSLog(@"error getting heart rate variability samples: %@", error);
+//            reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting heart rate variability samples: %@", error.localizedDescription], error);
+//            return;
+//        }
+//    }];
 
     [self fetchQuantitySamplesOfType:hrvType
                                 unit:unit
@@ -153,11 +189,11 @@
                                limit:limit
                           completion:^(NSArray *results, NSError *error) {
                               if(results){
-                                  callback(@[[NSNull null], results]);
+                                  resolve(results);
                                   return;
                               } else {
                                   NSLog(@"error getting heart rate variability samples: %@", error);
-                                  callback(@[RCTMakeError(@"error getting heart rate variability samples:", error, nil)]);
+                                  reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting heart rate variability samples: %@", error.localizedDescription], error);
                                   return;
                               }
                           }];
@@ -421,35 +457,60 @@
     }];
 }
 
-- (void)vitals_getVo2MaxSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback {
+- (void)vitals_getVo2MaxSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject API_AVAILABLE(ios(11.0))
+{
     HKQuantityType *vo2MaxType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierVO2Max];
 
-    HKUnit *ml = [HKUnit literUnitWithMetricPrefix:HKMetricPrefixMilli];
-    HKUnit *kg = [HKUnit gramUnitWithMetricPrefix:HKMetricPrefixKilo];
-    HKUnit *min = [HKUnit minuteUnit];
-    HKUnit *u = [ml unitDividedByUnit:[kg unitMultipliedByUnit:min]]; // ml/(kg*min)
+//    HKUnit *ml = [HKUnit literUnitWithMetricPrefix:HKMetricPrefixMilli];
+//    HKUnit *kg = [HKUnit gramUnitWithMetricPrefix:HKMetricPrefixKilo];
+//    HKUnit *min = [HKUnit minuteUnit];
+//    HKUnit *u = [ml unitDividedByUnit:[kg unitMultipliedByUnit:min]]; // ml/(kg*min)
+    HKUnit *u = [HKUnit unitFromString:@"ml/kg*min"];
+
 
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:u];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
-    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
 
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+        return;
+    }
+    
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
-    [self fetchQuantitySamplesOfType:vo2MaxType
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+
+//    if (watchOnly) {
+//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
+//    }
+    
+    
+    [self fetchQuantitySamplesOfTypeWithNoDevice:vo2MaxType
                                 unit:unit
                            predicate:predicate
                            ascending:ascending
+                            watchOnly:watchOnly
                                limit:limit
                           completion:^(NSArray *results, NSError *error) {
         if (results) {
-            callback(@[[NSNull null], results]);
+//            callback(@[[NSNull null], results]);
+            resolve(results);
             return;
         } else {
-            NSString *errStr = [NSString stringWithFormat:@"error getting Vo2Max samples: %@", error];
-            NSLog(errStr);
-
-            callback(@[RCTMakeError(errStr, nil, nil)]);
+//            callback(@[RCTMakeError(errStr, nil, nil)]);
+            reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting vo2max samples: %@", error.localizedDescription], error);
 
             return;
         }

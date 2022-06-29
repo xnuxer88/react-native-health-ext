@@ -43,6 +43,10 @@
 
 + (HKWorkout *) hkWorkoutFromOptions: (NSDictionary *)options;
 + (HKWorkoutRoute *) hkWorkoutRouteFromOptions: (NSDictionary *)options API_AVAILABLE(ios(11));
-
++ (NSString *) getSourceType:(HKSample *)sample;
++ (bool) validateFromWatch:(HKSample *)sample;
++ (bool) validateUserManualInput:(HKSample *)sample;
++ (NSDictionary *) serializeDevice:(HKSample *)sample;
++ (NSMutableDictionary *)serializeWorkout:(HKWorkout *)workoutSample;
 + (NSDictionary *) serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *>*)locations;
 @end

@@ -12,10 +12,10 @@
 
 /*@yulianto.kevin: adding anchored workouts routes*/
 
-- (void)workout_loadAllWorkoutLocations:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback API_AVAILABLE(ios(11));
+- (void)workout_loadAllWorkoutLocations:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject API_AVAILABLE(ios(11));
 
 /*end @yulianto.kevin*/
-- (void)workout_getAnchoredQuery:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+- (void)workout_getAnchoredQuery:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject;
 - (void)workout_save: (NSDictionary *)input callback: (RCTResponseSenderBlock)callback;
 
 @end

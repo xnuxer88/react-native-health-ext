@@ -207,10 +207,10 @@ RCT_EXPORT_METHOD(getSamples:(NSDictionary *)input callback:(RCTResponseSenderBl
     [self fitness_getSamples:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getAnchoredWorkouts:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getAnchoredWorkouts:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self workout_getAnchoredQuery:input callback:callback];
+    [self workout_getAnchoredQuery:input resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(setObserver:(NSDictionary *)input)
@@ -219,10 +219,10 @@ RCT_EXPORT_METHOD(setObserver:(NSDictionary *)input)
     [self fitness_setObserver:input];
 }
 
-RCT_EXPORT_METHOD(getDailyStepCountSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getDailyStepCountSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self fitness_getDailyStepSamples:input callback:callback];
+    [self fitness_getDailyStepSamples:input resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(saveSteps:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -237,10 +237,10 @@ RCT_EXPORT_METHOD(getDistanceWalkingRunning:(NSDictionary *)input callback:(RCTR
     [self fitness_getDistanceWalkingRunningOnDay:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getDailyDistanceWalkingRunningSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getDailyDistanceWalkingRunningSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self fitness_getDailyDistanceWalkingRunningSamples:input callback:callback];
+    [self fitness_getDailyDistanceWalkingRunningSamples:input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject];
 }
 
 RCT_EXPORT_METHOD(getDistanceCycling:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -249,22 +249,33 @@ RCT_EXPORT_METHOD(getDistanceCycling:(NSDictionary *)input callback:(RCTResponse
     [self fitness_getDistanceCyclingOnDay:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getDailyDistanceCyclingSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getDailyDistanceCyclingSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self fitness_getDailyDistanceCyclingSamples:input callback:callback];
+    [self fitness_getDailyDistanceCyclingSamples:input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject];
 }
 
 RCT_EXPORT_METHOD(getDistanceSwimming:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
 {
     [self _initializeHealthStore];
-    [self fitness_getDistanceSwimmingOnDay:input callback:callback];
+    if (@available(iOS 10.0, *)) {
+        [self fitness_getDistanceSwimmingOnDay:input callback:callback];
+    } else {
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        callback(@[[NSNull null], data]);
+    }
 }
 
-RCT_EXPORT_METHOD(getDailyDistanceSwimmingSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getDailyDistanceSwimmingSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self fitness_getDailyDistanceSwimmingSamples:input callback:callback];
+    if (@available(iOS 10.0, *)) {
+        [self fitness_getDailyDistanceSwimmingSamples:input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject];
+    } else {
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+        // Fallback on earlier versions
+    }
 }
 
 RCT_EXPORT_METHOD(getFlightsClimbed:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -311,10 +322,10 @@ RCT_EXPORT_METHOD(getWater:(NSDictionary *)input callback:(RCTResponseSenderBloc
     [self getWater:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getHeartRateSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self vitals_getHeartRateSamples:input callback:callback];
+    [self vitals_getHeartRateSamples:input resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(getRestingHeartRate:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -329,35 +340,40 @@ RCT_EXPORT_METHOD(getWalkingHeartRateAverage:(NSDictionary *)input callback:(RCT
     [self vitals_getWalkingHeartRateAverage:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getActiveEnergyBurnedPromise:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getActiveEnergyBurned:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
    [self _initializeHealthStore];
-   [self activity_getActiveEnergyBurnedPromise:input resolver:resolve rejecter:reject];
+   [self activity_getActiveEnergyBurned:input resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(getBasalEnergyBurnedPromise:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getBasalEnergyBurned:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
    [self _initializeHealthStore];
-   [self activity_getBasalEnergyBurnedPromise:input resolver:resolve rejecter:reject];
+   [self activity_getBasalEnergyBurned:input resolver:resolve rejecter:reject];
 }
 
+//RCT_EXPORT_METHOD(getActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+//{
+//   [self _initializeHealthStore];
+//   [self activity_getActiveEnergyBurned:input callback:callback];
+//}
+//
+//RCT_EXPORT_METHOD(getBasalEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+//{
+//    [self _initializeHealthStore];
+//    [self activity_getBasalEnergyBurned:input callback:callback];
+//}
 
-RCT_EXPORT_METHOD(getActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
-{
-   [self _initializeHealthStore];
-   [self activity_getActiveEnergyBurned:input callback:callback];
-}
-
-RCT_EXPORT_METHOD(getBasalEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getAppleExerciseTime:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self activity_getBasalEnergyBurned:input callback:callback];
-}
-
-RCT_EXPORT_METHOD(getAppleExerciseTime:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
-{
-    [self _initializeHealthStore];
-    [self activity_getAppleExerciseTime:input callback:callback];
+    if (@available(iOS 9.3, *)) {
+        [self activity_getAppleExerciseTime:input resolver:resolve rejecter:reject];
+    } else {
+        // Fallback on earlier versions
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+    }
 }
 
 RCT_EXPORT_METHOD(getAppleStandTime:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -366,10 +382,16 @@ RCT_EXPORT_METHOD(getAppleStandTime:(NSDictionary *)input callback:(RCTResponseS
     [self activity_getAppleStandTime:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getVo2MaxSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getVo2MaxSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self vitals_getVo2MaxSamples:input callback:callback];
+    if (@available(iOS 11.0, *)) {
+        [self vitals_getVo2MaxSamples:input resolver:resolve rejecter:reject];
+    } else {
+        // Fallback on earlier versions
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+    }
 }
 
 RCT_EXPORT_METHOD(getBodyTemperatureSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -390,10 +412,16 @@ RCT_EXPORT_METHOD(getRespiratoryRateSamples:(NSDictionary *)input callback:(RCTR
     [self vitals_getRespiratoryRateSamples:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getHeartRateVariabilitySamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getHeartRateVariabilitySamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self vitals_getHeartRateVariabilitySamples:input callback:callback];
+    if (@available(iOS 11.0, *)) {
+        [self vitals_getHeartRateVariabilitySamples:input resolver:resolve rejecter:reject];
+    } else {
+        // Fallback on earlier versions
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+    }
 }
 
 RCT_EXPORT_METHOD(getHeartbeatSeriesSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -444,10 +472,10 @@ RCT_EXPORT_METHOD(saveBloodGlucoseSample:(NSDictionary *)input callback:(RCTResp
     [self results_saveBloodGlucoseSample:input callback:callback];
 }
 
-RCT_EXPORT_METHOD(getSleepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getSleepSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self sleep_getSleepSamples:input callback:callback];
+    [self sleep_getSleepSamples:input resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(getInfo:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
@@ -523,10 +551,16 @@ RCT_EXPORT_METHOD(getClinicalRecords:(NSDictionary *)input callback:(RCTResponse
 }
 
 /*@yulianto.kevin: adding anchored workouts routes*/
-RCT_EXPORT_METHOD(getWorkoutLocations:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getWorkoutLocations:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self workout_loadAllWorkoutLocations:input callback:callback];
+    if (@available(iOS 11, *)) {
+        [self workout_loadAllWorkoutLocations:input resolver:resolve rejecter:reject];
+    } else {
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+        // Fallback on earlier versions
+    }
 }
 /*@yulianto.kevin end*/
 
