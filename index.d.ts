@@ -205,7 +205,7 @@ declare module 'react-native-health' {
     ): void
 
     getCaloriesBurned(options:HealthInputOptions): Promise<Array<HealthValue>>
-    
+
     getActiveEnergyBurned(options: HealthInputOptions): Promise<Array<HealthValue>>
 
     getBasalEnergyBurned(options: HealthInputOptions): Promise<Array<HealthValue>>
@@ -397,12 +397,19 @@ declare module 'react-native-health' {
   }
 
   export interface ValueUnit {
-    value: number,
-    unit: string,
+    value: number
+    unit: string
   }
   export interface HealthValue extends BaseValue {
     value: number
   }
+
+  export interface CaloriesValue extends BaseValue {
+    value: number
+    active: number //double
+    basal: number
+  }
+
   export interface HealthSample extends HealthValue {
     device: Device | null,
     sourceId: string,
@@ -444,7 +451,8 @@ declare module 'react-native-health' {
     uuid?: string
     ascending?: boolean
     includeManuallyAdded?: boolean
-    watchOnly?: boolean
+    includeWatch?: boolean
+    ignoredDevices?: Array<string>
   }
 
   export interface HKWorkoutRouteInputOptions {
@@ -469,7 +477,7 @@ declare module 'react-native-health' {
     altitude:number,
   }
 
-  export interface HKWorkoutQueriedSampleType extends HealthSample {
+  export interface HKWorkoutSampleType extends HealthSample {
     activityId: number
     activityName: string
     totalEnergyBurned: ValueUnit
@@ -477,6 +485,9 @@ declare module 'react-native-health' {
     duration: ValueUnit
     isIndoorWorkout: boolean
     workoutEvents: Array<any>
+  }
+
+  export interface HKWorkoutRouteSampleType extends HKWorkoutSampleType {
     locations: Array<any>
   }
 
@@ -636,6 +647,7 @@ declare module 'react-native-health' {
     TaiChi = 'TaiChi',
     MixedCardio = 'MixedCardio',
     HandCycling = 'HandCycling',
+    Other = 'Other'
   }
 
   export enum HealthPermission {
@@ -768,12 +780,12 @@ declare module 'react-native-health' {
 
   export interface AnchoredQueryResults {
     anchor: string
-    data: Array<HKWorkoutQueriedSampleType>
+    data: Array<HKWorkoutSampleType>
   }
 
   export interface WorkoutAndRouteLocationResults {
     anchor: string
-    data: Array<HKWorkoutQueriedSampleType>
+    data: Array<HKWorkoutRouteSampleType>
   }
 
   export enum HealthObserver {

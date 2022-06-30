@@ -60,7 +60,7 @@
                               } else {
                                   NSLog(@"error getting heart rate samples: %@", error);
 //                                  callback(@[RCTMakeError(@"error getting heart rate samples:", error, nil)]);
-                                  reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting heart rate samples: %@", error.localizedDescription], error);
+                                  reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting heart rate samples: %@", error.localizedDescription], error);
                                   return;
                               }
                           }];
@@ -165,22 +165,6 @@ API_AVAILABLE(ios(11.0))
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-//    if (watchOnly) {
-//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-//    }
-    
-    
-//    [self fetchCumulativeSumStatisticsCollection:hrvType unit:unit period:period predicate:predicate startDate:startDate endDate:endDate limit:limit ascending:ascending completion:^(NSArray *results, NSError *error) {
-//        if(results){
-//            resolve(results);
-//            return;
-//        } else {
-//            NSLog(@"error getting heart rate variability samples: %@", error);
-//            reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting heart rate variability samples: %@", error.localizedDescription], error);
-//            return;
-//        }
-//    }];
 
     [self fetchQuantitySamplesOfType:hrvType
                                 unit:unit
@@ -193,7 +177,7 @@ API_AVAILABLE(ios(11.0))
                                   return;
                               } else {
                                   NSLog(@"error getting heart rate variability samples: %@", error);
-                                  reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting heart rate variability samples: %@", error.localizedDescription], error);
+                                  reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting heart rate variability samples: %@", error.localizedDescription], error);
                                   return;
                               }
                           }];
@@ -510,7 +494,7 @@ API_AVAILABLE(ios(11.0))
             return;
         } else {
 //            callback(@[RCTMakeError(errStr, nil, nil)]);
-            reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting vo2max samples: %@", error.localizedDescription], error);
+            reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting vo2max samples: %@", error.localizedDescription], error);
 
             return;
         }

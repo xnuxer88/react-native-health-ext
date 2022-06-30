@@ -140,6 +140,14 @@
                                     limit:(NSUInteger)lim
                                 completion:(void (^)(NSArray<HKWorkout *> *workouts, HKQueryAnchor * _Nullable newAnchor, NSError *error))completion;
 
+-(void)fetchCalories:(HKUnit *)unit
+              period:(NSUInteger)period
+              predicate:(NSPredicate *)predicate
+              startDate:(NSDate *)startDate
+              endDate:(NSDate *)endDate
+              limit:(NSUInteger)lim
+              ascending:(BOOL)asc
+          completion:(void (^)(NSArray *, NSError *))completion;
 
 /*@yulianto.kevin end*/
 @end

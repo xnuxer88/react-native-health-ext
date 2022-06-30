@@ -45,7 +45,7 @@
                                              resolve(results);
                                              return;
                                          } else {
-                                             reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
+                                             reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
                                              return;
                                          }
                                      }];

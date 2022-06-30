@@ -50,11 +50,22 @@
     return [RCTAppleHealthKit predicateForSamplesOnDay:now];
 }
 
-+ (NSPredicate *)predicateWatchOnly {
++ (NSPredicate *)predicateIncludeWatch {
     NSMutableSet *deviceModelAllowedValuesSet = [NSMutableSet setWithCapacity:1];
     [deviceModelAllowedValuesSet addObject:@"Watch"];
     
     return [HKQuery predicateForObjectsWithDeviceProperty:HKDevicePropertyKeyModel allowedValues:deviceModelAllowedValuesSet];
+}
+
++ (NSPredicate *)predicateToIgnoreDevices:(NSArray *) array {
+    NSPredicate *predicateIgnoreDevices = nil;
+    for (NSString *ignoredDeviceStr in array) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"device.%K != %@", HKDevicePropertyKeyModel, ignoredDeviceStr];
+        predicateIgnoreDevices = [NSCompoundPredicate andPredicateWithSubpredicates:@[predicate]];
+    }
+
+    
+    return predicateIgnoreDevices;
 }
 
 + (NSPredicate *)predicateNotUserEntered {
@@ -143,6 +154,14 @@
     return date;
 }
 
++ (NSArray *)arrayFromOptions:(NSDictionary *)options key:(NSString *)key defaultValue:(NSArray* _Nullable) defaultValue {
+    NSArray *results = [options objectForKey:key];
+    if (results == nil && defaultValue != nil){
+        results = defaultValue;
+    }
+    
+    return results;
+}
 
 + (NSDate *)endDateFromOptionsDefaultNow:(NSDictionary *)options {
     NSString *dateString = [options objectForKey:@"endDate"];
@@ -722,7 +741,7 @@
     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.startDate];
     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.endDate];
     NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
-    NSNumber *activityType = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
+    NSNumber *activityId = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
     NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
     
     bool isIndoorWorkout = true;
@@ -739,7 +758,7 @@
         @"startDateTime" : startDateString,
         @"endDateTime" : endDateString,
         @"activityName": type,
-        @"activityType" : activityType,
+        @"activityType" : activityId,
         @"isUserEntered": @(isUserEntered),
         @"isFromWatch": @(isFromWatch),
         @"isIndoorWorkout": @(isIndoorWorkout),

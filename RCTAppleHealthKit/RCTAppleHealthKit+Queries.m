@@ -92,29 +92,7 @@
                     bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
                     bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
                     id sourceType = [RCTAppleHealthKit getSourceType:sample];
-//                    NSDictionary *device = @{
-//                        @"name": [[sample device] name] ?: [NSNull null],
-//                        @"model": [[sample device] model] ?: [NSNull null],
-//                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-//                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-//                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-//                    };
-                    
-                    
-//                    NSDictionary *elem = @{
-//                            @"value" : @(value),
-//                            @"id" : [[sample UUID] UUIDString],
-//                            @"sourceName" : [[[sample sourceRevision] source] name],
-//                            @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
-//                            @"sourceType": sourceType,
-//                            @"startDate" : startDateString,
-//                            @"endDate" : endDateString,
-//                            @"metadata": [sample metadata],
-//                            @"device": device,
-//                            @"isUserEntered": @(isUserEntered)
-//                    };
-//
-                    
+      
                     NSDictionary *elem = @{
                             @"value" : @(value),
                             @"id" : [[sample UUID] UUIDString],
@@ -390,7 +368,7 @@
                         @try {
                             double energy =  [[sample totalEnergyBurned] doubleValueForUnit:[HKUnit kilocalorieUnit]];
                             double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit mileUnit]];
-                            NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[sample workoutActivityType]];
+                            NSString *workoutType = [RCTAppleHealthKit stringForHKWorkoutActivityType:[sample workoutActivityType]];
 
                             NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                             NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
@@ -417,8 +395,9 @@
 
                             NSDictionary *elem = @{
                                                    @"activityId" : [NSNumber numberWithInt:[sample workoutActivityType]],
+                                                   
                                                    @"id" : [[sample UUID] UUIDString],
-                                                   @"activityName" : type,
+                                                   @"activityName" : workoutType,
                                                    @"calories" : @(energy),
                                                    @"metadata" : [sample metadata],
                                                    @"sourceName" : [[[sample sourceRevision] source] name],
@@ -1509,6 +1488,110 @@ API_AVAILABLE(ios(11.0))
         
     }];
 };
+
+- (void)fetchCalories:(HKUnit *)unit
+                    period:(NSUInteger)period
+                    predicate:(NSPredicate *)predicate
+                    startDate:(NSDate *)startDate
+                    endDate:(NSDate *)endDate
+                    limit:(NSUInteger)lim
+                    ascending:(BOOL)asc
+                    completion:(void (^)(NSArray *, NSError *))completionHandler {
+    
+    HKQuantityType *activeEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierActiveEnergyBurned];
+    HKQuantityType *basalEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBasalEnergyBurned];
+    
+    [self fetchCumulativeSumStatisticsCollection:basalEnergyType
+        unit:unit
+      period:period
+    predicate:predicate
+    startDate:startDate
+     endDate:endDate
+       limit:lim
+    ascending:true
+  completion:^(NSArray *basalResults, NSError *error) {
+        
+      if(basalResults){
+          [self fetchCumulativeSumStatisticsCollection:activeEnergyType
+                      unit:unit
+                    period:period
+                 predicate:predicate
+                 startDate:startDate
+                   endDate:endDate
+                     limit:lim
+                 ascending:true
+                completion:^(NSArray *activeResults, NSError *error) {
+                    if(activeResults){
+                        NSMutableDictionary *dict = [NSMutableDictionary new];
+                        for (id activeResult in activeResults) {
+//                            NSLog(@"activeEnergy: %@", activeResult);
+                            NSString *startDateStr =  [activeResult objectForKey:@"startDate"];
+                            NSString *endDateStr =  [activeResult objectForKey:@"endDate"];
+                            int calories = [[activeResult valueForKey:@"value"] intValue] + 0;
+                            [dict setObject:@{
+                                @"value" : @(calories),
+                                @"basal": @(0),
+                                @"active": @([[activeResult valueForKey:@"value"] doubleValue]),
+                                @"startDate" : startDateStr,
+                                @"endDate" : endDateStr,
+                            } forKey:startDateStr];
+                        }
+                        
+//                        NSLog(@"Dictionary: %@", dict);
+                        
+                        for (id basalResult in basalResults) {
+                            NSString *startDateStr = [basalResult objectForKey:@"startDate"];
+                            NSDictionary *caloryDict = [dict objectForKey:startDateStr];
+                            if (caloryDict != nil) {
+                                id active = [caloryDict objectForKey:@"active"];
+                                id basal = [basalResult valueForKey:@"value"];
+                                NSString *startDateStr =  [basalResult objectForKey:@"startDate"];
+                                NSString *endDateStr =  [basalResult objectForKey:@"endDate"];
+                                int calories = [active intValue] + [basal intValue];
+                                [dict setObject:@{
+                                    @"value" : @(calories),
+                                    @"basal": @([basal doubleValue]),
+                                    @"active": @([active doubleValue]),
+                                    @"startDate" : startDateStr,
+                                    @"endDate" : endDateStr,
+                                } forKey:startDateStr];
+                            } else {
+                                id basal = [basalResult valueForKey:@"value"];
+                                NSString *startDateStr =  [basalResult objectForKey:@"startDate"];
+                                NSString *endDateStr =  [basalResult objectForKey:@"endDate"];
+                                int calories = 0 + [basal intValue];
+                                [dict setObject:@{
+                                    @"value": @(calories),
+                                    @"basal": @([basal doubleValue]),
+                                    @"active": @(0),
+                                    @"startDate" : startDateStr,
+                                    @"endDate" : endDateStr,
+                                } forKey:startDateStr];
+                            }
+                        }
+                        
+                        NSArray *values = [dict allValues];
+                        NSMutableArray *results = [(NSArray*)values mutableCopy];
+                        if (asc == false) {
+                            [RCTAppleHealthKit reverseNSMutableArray:results];
+                        }
+                        
+                        completionHandler(results, nil);
+                        return;
+                    } else {
+                        NSLog(@"error getting active energy burned samples: %@", error);
+                        completionHandler(nil, error);
+                        return;
+                    }
+          }];
+      } else {
+          NSLog(@"error getting basal energy burned samples: %@", error);
+          completionHandler(nil, error);
+      }
+        
+  }];
+    
+}
 
 /*end @yulianto.kevin*/
 

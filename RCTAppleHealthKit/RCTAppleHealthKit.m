@@ -562,6 +562,12 @@ RCT_EXPORT_METHOD(getWorkoutLocations:(NSDictionary *)input resolve:(RCTPromiseR
         // Fallback on earlier versions
     }
 }
+
+RCT_EXPORT_METHOD(getCaloriesBurned:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+{
+    [self _initializeHealthStore];
+    [self activity_getCaloriesBurned:input resolver:resolve rejecter:reject];
+}
 /*@yulianto.kevin end*/
 
 

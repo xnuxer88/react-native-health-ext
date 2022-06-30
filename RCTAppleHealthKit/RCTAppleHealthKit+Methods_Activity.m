@@ -19,8 +19,10 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
+    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+    
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -38,11 +40,17 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-//    if (watchOnly) {
-//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-//    }
-//
+    if (ignoredDevices != nil) {
+        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+        if(ignoredDevicesPredicate != nil) {
+            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+        }
+    }
+
+    if (includeWatch) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+        predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
+    }
 
     [self fetchCumulativeSumStatisticsCollection:activeEnergyType
                                             unit:unit
@@ -60,7 +68,7 @@
                                           } else {
                                               NSLog(@"error getting active energy burned samples: %@", error);
 //                                              callback(@[RCTMakeError(@"error getting active energy burned samples:", error, nil)]);
-                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
+                                              reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
                                               return;
                                           }
                                       }];
@@ -74,8 +82,10 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
+    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+    
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -93,10 +103,17 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-//    if (watchOnly) {
-//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-//    }
+    if (ignoredDevices != nil) {
+        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+        if(ignoredDevicesPredicate != nil) {
+            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+        }
+    }
+
+    if (includeWatch) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+        predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
+    }
 
     [self fetchCumulativeSumStatisticsCollection:basalEnergyType
                                             unit:unit
@@ -114,7 +131,7 @@
                                           } else {
                                               NSLog(@"error getting basal energy burned samples: %@", error);
 //                                              callback(@[RCTMakeError(@"error getting basal energy burned samples:", error, nil)]);
-                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting basal energy burned samples: %@", error.localizedDescription], error);
+                                              reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting basal energy burned samples: %@", error.localizedDescription], error);
                                               return;
                                           }
                                       }];
@@ -129,8 +146,10 @@
     NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
+    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+    
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -146,11 +165,18 @@
         NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
+    
+    if (ignoredDevices != nil) {
+        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+        if(ignoredDevicesPredicate != nil) {
+            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+        }
+    }
 
-//    if (watchOnly) {
-//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-//    }
+    if (includeWatch) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+        predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
+    }
 
     [self fetchCumulativeSumStatisticsCollection:exerciseType
                                             unit:unit
@@ -168,7 +194,7 @@
                                           } else {
                                               NSLog(@"error getting exercise time: %@", error);
 //                                              callback(@[RCTMakeError(@"error getting exercise time:", error, nil)]);
-                                              reject(@"Invalid Argument", [NSString stringWithFormat:@"error getting exercise time samples: %@", error.localizedDescription], error);
+                                              reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting exercise time samples: %@", error.localizedDescription], error);
                                               return;
                                           }
                                       }];
@@ -226,5 +252,66 @@
                                           }
                                       }];
 }
+
+
+- (void)activity_getCaloriesBurned:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
+    
+    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
+    NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
+    NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+        return;
+    }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+    
+    if (ignoredDevices != nil) {
+        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+        if(ignoredDevicesPredicate != nil) {
+            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+        }
+    }
+
+    if (includeWatch) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+        predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
+    }
+    
+    [self fetchCalories:unit
+                      period:period
+                   predicate:predicate
+                   startDate:startDate
+                     endDate:endDate
+                       limit:limit
+                   ascending:ascending
+                  completion:^(NSArray *results, NSError *error) {
+                      if(results){
+                          resolve(results);
+                          return;
+                      } else {
+                          NSLog(@"error getting stand time: %@", error);
+                          reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting calories: %@", error.localizedDescription], error);
+                          return;
+                      }
+                  }];
+}
+
 
 @end

@@ -13,8 +13,9 @@
 + (NSDate *)parseISO8601DateFromString:(NSString *)date;
 + (NSString *)buildISO8601StringFromDate:(NSDate *)date;
 + (NSPredicate *)predicateForSamplesToday;
-+ (NSPredicate *)predicateWatchOnly;
++ (NSPredicate *)predicateIncludeWatch;
 + (NSPredicate *)predicateNotUserEntered;
++ (NSPredicate *)predicateToIgnoreDevices:(NSArray *)array;
 + (NSPredicate *)predicateForSamplesOnDay:(NSDate *)date;
 + (NSPredicate *)predicateForSamplesBetweenDates:(NSDate *)startDate endDate:(NSDate *)endDate;
 + (NSPredicate *)predicateForSamplesBetweenDatesWithFormat:(NSDate *)startDate endDate:(NSDate *)endDate;
@@ -22,6 +23,7 @@
 + (NSPredicate *)predicateForAnchoredQueries:(HKQueryAnchor *)anchor startDate:(NSDate *)startDate endDate:(NSDate *)endDate;
 + (double)doubleValueFromOptions:(NSDictionary *)options;
 + (NSDate *)dateFromOptions:(NSDictionary *)options;
++ (NSArray *)arrayFromOptions:(NSDictionary *)options key:(NSString *)key defaultValue:(NSArray*) defaultValue;
 + (NSDate *)dateFromOptionsDefaultNow:(NSDictionary *)options;
 + (NSDate *)startDateFromOptions:(NSDictionary *)options;
 + (NSDate *)endDateFromOptions:(NSDictionary *)options;
