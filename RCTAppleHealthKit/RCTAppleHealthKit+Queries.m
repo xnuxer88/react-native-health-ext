@@ -68,10 +68,8 @@
     void (^handlerBlock)(HKSampleQuery *query, NSArray *results, NSError *error);
     // create and assign the block
     handlerBlock = ^(HKSampleQuery *query, NSArray *results, NSError *error) {
-        if (!results) {
-            if (completion) {
-                completion(nil, error);
-            }
+        if (error && completion) {
+            completion(nil, error);
             return;
         }
 
@@ -173,37 +171,6 @@
 //                        }
 //                    }
                 
-
-//                    id sourceType = [NSNull null];
-//                    if (@available(iOS 11.0, *)) {
-//                        sourceType = [[sample sourceRevision] productType];
-//                    } else {
-//                        sourceType = [[sample device] name];
-//                        if (!sourceType) {
-//                            sourceType = [NSNull null];
-//                        }
-//                    }
-
-//                    NSDictionary *device = @{
-//                        @"name": [[sample device] name] ?: [NSNull null],
-//                        @"model": [[sample device] model] ?: [NSNull null],
-//                        @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-//                        @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-//                        @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-//                    };
-                    
-//                    NSDictionary *elem = @{
-//                            @"value" : @(value),
-//                            @"id" : [[sample UUID] UUIDString],
-//                            @"sourceName" : [[[sample sourceRevision] source] name],
-//                            @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
-//                            @"sourceType": sourceType,
-//                            @"startDate" : startDateString,
-//                            @"endDate" : endDateString,
-//                            @"metadata": [sample metadata],
-//                            @"device": device,
-//                            @"isUserEntered": @(isUserEntered)
-//                    };
                     
                     NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
                     bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
@@ -626,70 +593,6 @@ API_AVAILABLE(ios(12.0))
             dispatch_async(dispatch_get_main_queue(), ^{
                 for (HKWorkout *sample in sampleObjects) {
                     @try {
-//                        double energy =  [[sample totalEnergyBurned] doubleValueForUnit:[HKUnit kilocalorieUnit]];
-//                        double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit meterUnit]];
-//                        NSTimeInterval duration = [sample duration];
-//
-//                        NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
-//                        NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
-
-//                        bool isUserEntered = false;
-//                        if ([[sample metadata][HKMetadataKeyWasUserEntered] intValue] == 1) {
-//                            isUserEntered = true;
-//                        }
-//
-//                        NSDictionary *device = @{
-//                            @"name": [[sample device] name] ?: [NSNull null],
-//                            @"model": [[sample device] model] ?: [NSNull null],
-//                            @"manufacturer": [[sample device] manufacturer] ?: [NSNull null],
-//                            @"UDIDDevice": [[sample device] UDIDeviceIdentifier] ?: [NSNull null],
-//                            @"LocalID": [[sample device] localIdentifier] ?: [NSNull null],
-//                        };
-//
-//
-//                        id sourceType = [NSNull null];
-//                        if (@available(iOS 11.0, *)) {
-//                            sourceType = [[sample sourceRevision] productType];
-//                        } else {
-//                            sourceType = [[sample device] name];
-//                            if (!sourceType) {
-//                                sourceType = [NSNull null];
-//                            }
-//                        }
-                        
-//                        NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
-//                        bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
-//                        bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
-//                        id sourceType = [RCTAppleHealthKit getSourceType:sample];
-//
-//                        bool isIndoorWorkout = true;
-//                        if ([[sample metadata][HKMetadataKeyIndoorWorkout] intValue] == 0) {
-//                            isIndoorWorkout = false;
-//                        }
-//
-
-//                        NSNumber *activityId = [NSNumber numberWithInt:[sample workoutActivityType]];
-//                        NSString *activityIdString = [activityId stringValue];
-//                        NSString *activityName = [RCTAppleHealthKit stringForHKWorkoutActivityType:[sample workoutActivityType]];
-                        
-//                        NSDictionary *elem = @{
-//                                               @"activityId" : activityIdString,
-//                                               @"id" : [[sample UUID] UUIDString],
-//                                               @"activityName" : activityName,
-//                                               @"calories" : @(energy),
-//                                               @"duration" : @(duration),
-//                                               @"metadata" : [sample metadata],
-//                                               @"sourceName" : [[[sample sourceRevision] source] name],
-//                                               @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
-//                                               @"sourceType": sourceType,
-//                                               @"device": device,
-//                                               @"distance" : @(distance),
-//                                               @"start" : startDateString,
-//                                               @"end" : endDateString,
-//                                               @"isUserEntered" : @(isUserEntered),
-//                                               @"isFromWatch" : @(isFromWatch),
-//                                               @"isIndoorWorkout": @(isIndoorWorkout)
-//                                            };
                         NSDictionary *elem = [RCTAppleHealthKit serializeWorkout:sample];
 
                         [data addObject:elem];
@@ -1047,20 +950,6 @@ API_AVAILABLE(ios(12.0))
                                                      fromDate:startDate];
     //anchorComponents.hour = 0;
     NSDate *anchorDate = [calendar dateFromComponents:anchorComponents];
-//    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
-//                                            HKPredicateKeyPathEndDate, startDate,
-//                                            HKPredicateKeyPathStartDate, endDate];
-//
-//    if (includeManuallyAdded == false) {
-//        NSPredicate *includeManuallyAdded = [NSPredicate predicateWithFormat:@"metadata.%K == %@",
-//                     HKMetadataKeyWasUserEntered, includeManuallyAdded ? @"YES" : @"NO"];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
-//    }
-//
-//    if (watchOnly) {
-//        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchPredicate]];
-//    }
     
     // Create the query
     HKStatisticsCollectionQuery *query = [[HKStatisticsCollectionQuery alloc] initWithQuantityType:quantityType
@@ -1103,7 +992,7 @@ API_AVAILABLE(ios(12.0))
                                            [data addObject:elem];
                                        }
                                    }];
-        // is ascending by default
+        // is descending by default
         if(asc == false) {
             [RCTAppleHealthKit reverseNSMutableArray:data];
         }
@@ -1382,53 +1271,59 @@ API_AVAILABLE(ios(9.3))
 
 - (void)fetchWorkoutRouteHealthStore:(HKWorkout *)workoutSample
                           completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion
-API_AVAILABLE(ios(11.0))
 {
     NSPredicate *workoutPredicate = [HKQuery predicateForObjectsFromWorkout:workoutSample];
     
-    HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc]
-                                    initWithType:[HKSeriesType workoutRouteType]
-                                    predicate:workoutPredicate
-                                    anchor:nil
-                                    limit:HKObjectQueryNoLimit
-                                    resultsHandler:^(HKAnchoredObjectQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSArray<HKDeletedObject *> * _Nullable deletedObjects, HKQueryAnchor * _Nullable newAnchor, NSError * _Nullable error) {
-        
-        if (error && completion) {
-            completion(nil, error);
-            return;
-        }
-        
-        if (!workoutRoutesSamples || [workoutRoutesSamples count] <= 0) {
-            completion([NSArray array], nil);
-            return;
-        }
-        
-        NSMutableArray *routeLocations = [NSMutableArray arrayWithCapacity:1];
-        
-        HKQuery *routeLocationQuery = nil;
-        routeLocationQuery = [[HKWorkoutRouteQuery alloc]initWithRoute:workoutRoutesSamples.firstObject dataHandler:^(HKWorkoutRouteQuery * _Nonnull query, NSArray<CLLocation *> * _Nullable routeData, BOOL done, NSError * _Nullable error) {
-            if (error) {
-                [self.healthStore stopQuery:routeLocationQuery];
-                if (completion) {
-                    completion(nil, error);
-                }
+    if (@available(iOS 11.0, *)) {
+        HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc]
+                                        initWithType:[HKSeriesType workoutRouteType]
+                                        predicate:workoutPredicate
+                                        anchor:nil
+                                        limit:HKObjectQueryNoLimit
+                                        resultsHandler:^(HKAnchoredObjectQuery * _Nonnull query, NSArray<__kindof HKSample *> * _Nullable workoutRoutesSamples, NSArray<HKDeletedObject *> * _Nullable deletedObjects, HKQueryAnchor * _Nullable newAnchor, NSError * _Nullable error) {
+            
+            if (error && completion) {
+                completion(nil, error);
                 return;
             }
-            if (routeData != nil) {
-                [routeLocations addObjectsFromArray:routeData];
+            
+            if (!workoutRoutesSamples || [workoutRoutesSamples count] <= 0) {
+                completion([NSArray array], nil);
+                return;
             }
             
-            if (done) {
-                completion(routeLocations, nil);
+            NSMutableArray *routeLocations = [NSMutableArray arrayWithCapacity:1];
+            
+            HKQuery *routeLocationQuery = nil;
+            routeLocationQuery = [[HKWorkoutRouteQuery alloc]initWithRoute:workoutRoutesSamples.firstObject dataHandler:^(HKWorkoutRouteQuery * _Nonnull query, NSArray<CLLocation *> * _Nullable routeData, BOOL done, NSError * _Nullable error) {
+                if (error) {
+                    [self.healthStore stopQuery:routeLocationQuery];
+                    if (completion) {
+                        completion(nil, error);
+                    }
+                    return;
+                }
+                if (routeData != nil) {
+                    [routeLocations addObjectsFromArray:routeData];
+                } else {
+                    [routeLocations addObjectsFromArray:[NSArray array]];
+                }
+                
+                if (done) {
+                    completion(routeLocations, nil);
+                }
+            }];
+            
+            if (routeLocationQuery != nil) {
+                [self.healthStore executeQuery:routeLocationQuery];
             }
         }];
         
-        if (routeLocationQuery != nil) {
-            [self.healthStore executeQuery:routeLocationQuery];
-        }
-    }];
-    
-    [self.healthStore executeQuery:query];
+        [self.healthStore executeQuery:query];
+    } else {
+        // Fallback on earlier versions, unable to query the route locations
+        completion([NSArray array], nil);
+    }
 };
 
 - (void)fetchAllWorkoutLocations:(HKSampleType *)type
@@ -1449,8 +1344,10 @@ API_AVAILABLE(ios(11.0))
         }
         
         if (!workouts) {
-            NSError *error = [NSError errorWithDomain:@"com.actxa.actxa" code:3456 userInfo:@{NSLocalizedDescriptionKey:@"No workout data found"}];
-            completion(nil, error);
+            completion(@{
+                @"data": [NSArray array],
+                @"anchor": [NSNull null]
+            }, nil);
             return;
         }
         
@@ -1463,16 +1360,15 @@ API_AVAILABLE(ios(11.0))
                 completion:^(NSArray<CLLocation *> *locations, NSError *error) {
                 tally += 1;
                 if (error) {
-                    completion(nil, error);
-//                    if (tally == [workouts count]) {
-//                        completion(@{
-//                            @"data": results,
-//                            @"anchor": newAnchor
-//                        }, nil);
-//                        return;
-//                    } else {
-//                        completion(nil, error);
-//                    }
+                    if (tally == [workouts count]) {
+                        completion(@{
+                            @"data": results,
+                            @"anchor": newAnchor
+                        }, nil);
+                        return;
+                    } else {
+                        completion(nil, error);
+                    }
                     return;
                 }
                 

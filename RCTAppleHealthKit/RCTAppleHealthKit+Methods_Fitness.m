@@ -109,7 +109,6 @@
 
     if(startDate == nil){
         reject(@"Invalid Argument", @"startDate is required in options", nil);
-//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
     

@@ -554,13 +554,7 @@ RCT_EXPORT_METHOD(getClinicalRecords:(NSDictionary *)input callback:(RCTResponse
 RCT_EXPORT_METHOD(getWorkoutLocations:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    if (@available(iOS 11, *)) {
-        [self workout_loadAllWorkoutLocations:input resolver:resolve rejecter:reject];
-    } else {
-        NSArray *data = [NSMutableArray arrayWithCapacity:1];
-        resolve(data);
-        // Fallback on earlier versions
-    }
+    [self workout_loadAllWorkoutLocations:input resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(getCaloriesBurned:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)

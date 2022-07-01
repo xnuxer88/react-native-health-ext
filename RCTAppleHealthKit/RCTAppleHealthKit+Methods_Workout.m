@@ -12,7 +12,7 @@
 
 @implementation RCTAppleHealthKit (Methods_Workout)
 
-- (void)workout_loadAllWorkoutLocations:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject  API_AVAILABLE(ios(11))
+- (void)workout_loadAllWorkoutLocations:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
 {
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     HKSampleType *workoutType = [HKSeriesType workoutType];
@@ -21,12 +21,10 @@
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
-//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     
     if(startDate == nil){
         reject(@"Invalid Argument", @"startDate is required in options", nil);
-//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
     
@@ -36,12 +34,7 @@
         NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
     }
-    
-    
-//    if (watchOnly) {
-//        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[watchOnlyPredicate]];
-//    }
+
     
     void (^completion)(NSDictionary *results, NSError *error);
     
