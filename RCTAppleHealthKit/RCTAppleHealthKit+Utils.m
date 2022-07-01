@@ -680,8 +680,8 @@
     NSMutableDictionary *fullSerializedDictionary = [NSMutableDictionary new];
     NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
     if ([workoutSample totalDistance] != nil) {
-        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
-        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit meterUnit]]],@"unit":unitString} forKey:@"totalDistance"];
+//        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
+        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit meterUnit]]],@"unit":@"m"} forKey:@"totalDistance"];
     } else {
         [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalDistance"];
     }
@@ -755,8 +755,8 @@
     
     [fullSerializedDictionary addEntriesFromDictionary:@{
         @"id": [[workoutSample UUID] UUIDString],
-        @"startDateTime" : startDateString,
-        @"endDateTime" : endDateString,
+        @"startDate" : startDateString,
+        @"endDate" : endDateString,
         @"activityName": type,
         @"activityType" : activityId,
         @"isUserEntered": @(isUserEntered),

@@ -285,7 +285,7 @@ API_AVAILABLE(ios(11.0))
     }
 }
 
-- (void)vitals_getRestingHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+- (void)vitals_getRestingHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback API_AVAILABLE(ios(11.0))
 {
     HKQuantityType *restingHeartRateType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierRestingHeartRate];
 
