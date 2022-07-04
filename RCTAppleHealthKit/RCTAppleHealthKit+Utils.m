@@ -627,18 +627,21 @@
 }
 
 + (bool)validateFromWatch:(HKSample *)sample {
-    NSString *description = sample.description ?: @"";
-    NSError *error = NULL;
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
-                                                                           options:NSRegularExpressionCaseInsensitive
-                                                                             error:&error];
-                                  
-    
-    NSInteger numberOfMatches = [regex numberOfMatchesInString:description
-                                                        options:0
-                                                          range:NSMakeRange(0, [description length])];
+    NSString *deviceModel = [[sample device] model];
+//    NSString *description = sample.description ?: @"";
+//    NSError *error = NULL;
+//    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bWatch\\b"
+//                                                                           options:NSRegularExpressionCaseInsensitive
+//                                                                             error:&error];
+//
+//
+//    NSInteger numberOfMatches = [regex numberOfMatchesInString:description
+//                                                        options:0
+//                                                          range:NSMakeRange(0, [description length])];
+//
+//    return numberOfMatches > 0;
 
-    return numberOfMatches > 0;
+    return [deviceModel isEqual:@"Watch"];
 }
 
 + (bool)validateUserManualInput:(HKSample *)sample {

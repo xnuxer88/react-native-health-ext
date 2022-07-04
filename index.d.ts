@@ -137,20 +137,14 @@ declare module 'react-native-health' {
       callback: (err: string, results: HealthValue) => void,
     ): void
 
-    getDailyDistanceWalkingRunningSamples(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getDailyDistanceWalkingRunningSamples(options: HealthInputOptions): Promise<Array<HealthValue>>;
 
     getDistanceCycling(
       options: HealthInputOptions,
       callback: (err: string, results: HealthValue) => void,
     ): void
 
-    getDailyDistanceCyclingSamples(
-      options: HealthInputOptions,
-      callback: (err: string, results: Array<HealthValue>) => void,
-    ): void
+    getDailyDistanceCyclingSamples(options: HealthInputOptions): Promise<Array<HealthValue>>;
 
     getFlightsClimbed(
       options: HealthInputOptions,
@@ -161,6 +155,8 @@ declare module 'react-native-health' {
       options: HealthInputOptions,
       callback: (err: string, results: Array<HealthValue>) => void,
     ): void
+
+    getDistanceDownhillSnowSportsSamples(options: HealthInputOptions): Promise<Array<HealthValue>>;
 
     getEnergyConsumedSamples(
       options: HealthInputOptions,

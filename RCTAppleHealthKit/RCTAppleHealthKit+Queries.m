@@ -157,23 +157,9 @@
 
                     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
-
-//                    if (watchOnly) {
-//                        NSString *description = sample.description ?: @"";
-//                        NSError *error = NULL;
-//                        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b" options:NSRegularExpressionCaseInsensitive error:&error];
-//
-//                        NSInteger numberOfMatches = [regex numberOfMatchesInString:description
-//                                                                            options:0
-//                                                                              range:NSMakeRange(0, [description length])];
-//                        if (numberOfMatches <= 0) {
-//                            continue; // skip if the source data type is not from apple health
-//                        }
-//                    }
-                
                     
                     NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
-                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+//                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
                     bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
                     id sourceType = [RCTAppleHealthKit getSourceType:sample];
                     
@@ -188,7 +174,7 @@
                             @"metadata": [sample metadata],
                             @"device": device,
                             @"isUserEntered": @(isUserEntered),
-                            @"isFromWatch": @(isFromWatch)
+                            @"isFromWatch": [NSNull null] // vo2max data not storing the device model
                     };
 
                     [data addObject:elem];
@@ -647,7 +633,7 @@ API_AVAILABLE(ios(12.0))
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 for (HKCategorySample *sample in results) {
-                    NSString *description = sample.description ?: @"";
+//                    NSString *description = sample.description ?: @"";
 //                    NSError *error = NULL;
                     
 //                    if (watchOnly) {
@@ -669,7 +655,7 @@ API_AVAILABLE(ios(12.0))
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
                     
                     NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
-                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    // bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
                     bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
                     id sourceType = [RCTAppleHealthKit getSourceType:sample];
                     
@@ -684,7 +670,7 @@ API_AVAILABLE(ios(12.0))
                         @"metadata" : [sample metadata] ?: [NSNull null],
                         @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier] ?: [NSNull null],
                         @"isUserEntered": @(isUserEntered),
-                        @"isFromWatch": @(isFromWatch)
+                        @"isFromWatch": [NSNull null], // sleep data unable to check data is from apple watch.
                     };
                     
                     [data addObject: elem];
@@ -1420,7 +1406,6 @@ API_AVAILABLE(ios(9.3))
                     if(activeResults){
                         NSMutableDictionary *dict = [NSMutableDictionary new];
                         for (id activeResult in activeResults) {
-//                            NSLog(@"activeEnergy: %@", activeResult);
                             NSString *startDateStr =  [activeResult objectForKey:@"startDate"];
                             NSString *endDateStr =  [activeResult objectForKey:@"endDate"];
                             int calories = [[activeResult valueForKey:@"value"] intValue] + 0;
@@ -1432,8 +1417,6 @@ API_AVAILABLE(ios(9.3))
                                 @"endDate" : endDateStr,
                             } forKey:startDateStr];
                         }
-                        
-//                        NSLog(@"Dictionary: %@", dict);
                         
                         for (id basalResult in basalResults) {
                             NSString *startDateStr = [basalResult objectForKey:@"startDate"];

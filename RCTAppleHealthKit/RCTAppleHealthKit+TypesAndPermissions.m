@@ -61,8 +61,10 @@
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWalkingRunning];
     } else if ([@"DistanceCycling" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceCycling];
-    } else if ([@"DistanceSwimming" isEqualToString: key]) {
+    } else if ([@"DistanceSwimming" isEqualToString: key] && systemVersion >= 10.0) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceSwimming];
+    } else if ([@"DistanceDownhillSnowSports" isEqualToString: key] && systemVersion >= 11.2) {
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceDownhillSnowSports];
     } else if ([@"BasalEnergyBurned" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierBasalEnergyBurned];
     } else if ([@"ActiveEnergyBurned" isEqualToString: key]) {

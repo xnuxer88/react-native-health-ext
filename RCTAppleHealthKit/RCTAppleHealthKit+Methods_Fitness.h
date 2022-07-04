@@ -23,7 +23,7 @@
 - (void)fitness_getDailyDistanceCyclingSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject;
 - (void)fitness_getFlightsClimbedOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
 - (void)fitness_getDailyFlightsClimbedSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
-
+- (void)fitness_getDailyDistanceDownhillSnowSportsSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject API_AVAILABLE(ios(11.2));
 - (void)fitness_setObserver:(NSDictionary *)input __deprecated;
 - (void)fitness_registerObserver:(NSString *)type
                           bridge:(RCTBridge *)bridge

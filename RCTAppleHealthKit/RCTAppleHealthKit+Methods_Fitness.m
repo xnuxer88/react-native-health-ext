@@ -312,7 +312,6 @@
                                       completion:^(NSArray *results, NSError *err){
                                           if (err != nil) {
                                               NSLog(@"error with fetchCumulativeSumStatisticsCollection: %@", err);
-//                                              callback(@[RCTMakeError(@"error with fetchCumulativeSumStatisticsCollection", err, nil)]);
                                               reject(@"Error Callback", [NSString stringWithFormat:@"error getting walkingRunning distance: %@", err.localizedDescription], err);
                                               return;
                                           }
@@ -587,6 +586,67 @@
                                               return;
                                           }
                                           callback(@[[NSNull null], arr]);
+                                      }];
+}
+
+
+- (void)fitness_getDailyDistanceDownhillSnowSportsSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject API_AVAILABLE(ios(11.2))
+{
+    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
+    NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    
+    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+        return;
+    }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+
+    if (ignoredDevices != nil) {
+        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+        if(ignoredDevicesPredicate != nil) {
+            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+        }
+    }
+
+    if (includeWatch) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+        predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
+    }
+
+    HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceDownhillSnowSports];
+
+    [self fetchCumulativeSumStatisticsCollection:quantityType
+                                            unit:unit
+                                            period:period
+                                       predicate:predicate
+                                       startDate:startDate
+                                         endDate:endDate
+                                           limit:limit
+                                       ascending:ascending
+                                      completion:^(NSArray *results, NSError *err){
+                                          if (err != nil) {
+                                              reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting downhill snowsports distance: %@", err.localizedDescription], err);
+                                              return;
+                                          }
+                                            resolve(results);
                                       }];
 }
 

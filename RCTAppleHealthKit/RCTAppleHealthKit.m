@@ -272,10 +272,22 @@ RCT_EXPORT_METHOD(getDailyDistanceSwimmingSamples:(NSDictionary *)input resolve:
     if (@available(iOS 10.0, *)) {
         [self fitness_getDailyDistanceSwimmingSamples:input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject];
     } else {
+        // Fallback on earlier versions
         NSArray *data = [NSMutableArray arrayWithCapacity:1];
         resolve(data);
-        // Fallback on earlier versions
     }
+}
+
+RCT_EXPORT_METHOD(getDistanceDownhillSnowSportsSamples: (NSDictionary *)input
+  resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+{
+    if (@available(iOS 11.2, *)) {
+        [self fitness_getDailyDistanceDownhillSnowSportsSamples:input resolver:resolve rejecter:reject];
+    } else {
+        // Fallback on earlier versions
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+    };
 }
 
 RCT_EXPORT_METHOD(getFlightsClimbed:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)

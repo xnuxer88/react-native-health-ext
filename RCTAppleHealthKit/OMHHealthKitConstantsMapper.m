@@ -344,6 +344,8 @@
                                         HKQuantityTypeIdentifierDietaryZinc: @"OMHSerializerGenericQuantitySample",
                                         HKQuantityTypeIdentifierDistanceCycling: @"OMHSerializerGenericQuantitySample",
                                         HKQuantityTypeIdentifierDistanceWalkingRunning: @"OMHSerializerGenericQuantitySample",
+                                        HKQuantityTypeIdentifierDistanceDownhillSnowSports:
+                                            @"OMHSerializerGenericQuantitySample",
                                         HKQuantityTypeIdentifierElectrodermalActivity: @"OMHSerializerGenericQuantitySample",
                                         HKQuantityTypeIdentifierFlightsClimbed: @"OMHSerializerGenericQuantitySample",
                                         HKQuantityTypeIdentifierForcedExpiratoryVolume1: @"OMHSerializerGenericQuantitySample",
