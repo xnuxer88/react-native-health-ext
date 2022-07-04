@@ -68,7 +68,7 @@
     void (^handlerBlock)(HKSampleQuery *query, NSArray *results, NSError *error);
     // create and assign the block
     handlerBlock = ^(HKSampleQuery *query, NSArray *results, NSError *error) {
-        if (error && completion) {
+        if (error) {
             completion(nil, error);
             return;
         }
@@ -647,7 +647,7 @@ API_AVAILABLE(ios(12.0))
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 for (HKCategorySample *sample in results) {
-//                    NSString *description = sample.description ?: @"";
+                    NSString *description = sample.description ?: @"";
 //                    NSError *error = NULL;
                     
 //                    if (watchOnly) {
