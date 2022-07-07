@@ -683,16 +683,15 @@
     NSMutableDictionary *fullSerializedDictionary = [NSMutableDictionary new];
     NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
     if ([workoutSample totalDistance] != nil) {
-//        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
         [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit meterUnit]]],@"unit":@"m"} forKey:@"totalDistance"];
     } else {
         [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalDistance"];
     }
     
     if ([workoutSample totalEnergyBurned] != nil) {
-        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[[workoutSample totalEnergyBurned]doubleValueForUnit:[HKUnit kilocalorieUnit]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
+        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[[workoutSample totalEnergyBurned]doubleValueForUnit:[HKUnit kilocalorieUnit]]],@"unit":@"kcal"} forKey:@"activeEnergyBurned"];
     } else {
-        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalEnergyBurned"];
+        [fullSerializedDictionary setObject:[NSNull null] forKey:@"activeEnergyBurned"];
     }
     
     [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
@@ -721,18 +720,19 @@
          NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
          for (HKWorkoutEvent *event in workoutSample.workoutEvents) {
              NSDictionary *elem = nil;
+
              if (@available(iOS 11.0, *)) {
                  elem = @{
                      @"date" : event.date,
                      @"dateInterval" : event.dateInterval,
-                     @"HKWorkoutEventType": [NSNumber numberWithInt:event.type],
+                     @"HKWorkoutEventType": @(event.type),
                      @"metadata": event.metadata,
                  };
              } else {
                  elem = @{
                      @"date" : event.date,
                      @"dateInterval" : @(0),
-                     @"HKWorkoutEventType": [NSNumber numberWithInt:event.type],
+                     @"HKWorkoutEventType": @(event.type),
                      @"metadata": @{},
                  };
              }
@@ -743,8 +743,8 @@
     
     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.startDate];
     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.endDate];
-    NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
-    NSNumber *activityId = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
+    NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:(int)workoutSample.workoutActivityType];
+    NSNumber *activityId = [NSNumber numberWithInt:(int)workoutSample.workoutActivityType];
     NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
     
     bool isIndoorWorkout = true;
@@ -777,77 +777,6 @@
 
 + (NSDictionary *)serializeWorkoutRouteLocations:(HKWorkout *)workoutSample locations:(NSArray<CLLocation *> *)locations {
     NSMutableDictionary *fullSerializedDictionary = [self serializeWorkout: workoutSample];
-//    NSLog(@"workout sourceName: %@", [[[workoutSample sourceRevision] source] name]);
-//    if ([workoutSample totalDistance] != nil) {
-//        NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalDistance];
-//        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalDistance doubleValueForUnit:[HKUnit meterUnit]]],@"unit":unitString} forKey:@"totalDistance"];
-//    } else {
-//        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalDistance"];
-//    }
-//
-//    if ([workoutSample totalEnergyBurned] != nil) {
-//        [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[[workoutSample totalEnergyBurned]doubleValueForUnit:[HKUnit kilocalorieUnit]]],@"unit":@"kcal"} forKey:@"totalEnergyBurned"];
-//    } else {
-//        [fullSerializedDictionary setObject:[NSNull null] forKey:@"totalEnergyBurned"];
-//    }
-//
-//    [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:workoutSample.duration],@"unit":@"sec"} forKey:@"duration"];
-//
-//    NSDictionary *device = [self serializeDevice:workoutSample];
-//    bool isFromWatch = [self validateFromWatch:workoutSample];
-//    bool isUserEntered = [self validateUserManualInput:workoutSample];
-//    id sourceType = [self getSourceType:workoutSample];
-//
-//     if (@available(iOS 10.0, *)) {
-//         if (workoutSample.totalSwimmingStrokeCount) {
-//             NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalSwimmingStrokeCount];
-//             [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalSwimmingStrokeCount doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalSwimmingStrokeCount"];
-//
-//         }
-//     }
-//
-//     if (@available(iOS 11.0, *)) {
-//         if (workoutSample.totalFlightsClimbed) {
-//                 NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalFlightsClimbed];
-//                 [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalFlightsClimbed doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalFlightsClimbed"];
-//         }
-//     }
-//
-//     if (workoutSample.workoutEvents != nil) {
-//         NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
-//         for (HKWorkoutEvent *event in workoutSample.workoutEvents) {
-//             NSDictionary *elem = nil;
-//             if (@available(iOS 11.0, *)) {
-//                 elem = @{
-//                     @"date" : event.date,
-//                     @"dateInterval" : event.dateInterval,
-//                     @"HKWorkoutEventType": [NSNumber numberWithInt:event.type],
-//                     @"metadata": event.metadata,
-//                 };
-//             } else {
-//                 elem = @{
-//                     @"date" : event.date,
-//                     @"dateInterval" : @(0),
-//                     @"HKWorkoutEventType": [NSNumber numberWithInt:event.type],
-//                     @"metadata": @{},
-//                 };
-//             }
-//             [data addObject:elem];
-//         }
-//         [fullSerializedDictionary setObject:data forKey:@"workoutEvents"];
-//     }
-//
-//    NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.startDate];
-//    NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:workoutSample.endDate];
-//    NSString *type = [RCTAppleHealthKit stringForHKWorkoutActivityType:[workoutSample workoutActivityType]];
-//    NSNumber *activityType = [NSNumber numberWithInt:[workoutSample workoutActivityType]];
-//    NSDictionary<NSString *, id> *metadata = [[NSDictionary alloc] init];
-//    if ([workoutSample metadata] != nil) {
-//        metadata = [workoutSample metadata];
-//    }
-//
-    
-    
     
     NSMutableArray *locationData = [NSMutableArray arrayWithCapacity:1];
     NSUInteger index = 0;
@@ -872,15 +801,15 @@
         NSNumber *altitude = [NSNumber numberWithDouble:location.altitude];
         NSNumber *horizontalAccuracy = [NSNumber numberWithDouble:location.horizontalAccuracy];
         NSNumber *verticalAccuracy = [NSNumber numberWithDouble:location.verticalAccuracy];
-        NSUInteger distCounter = 0;
+        double distCounter = 0.0;
         if (index < [locations count] - 1) {
             CLLocation *nextLocation = locations[index + 1];
-            distCounter = [location distanceFromLocation:nextLocation];
+            distCounter = [location distanceFromLocation:nextLocation]; //meter
         } else {
             distCounter = 0;
         }
         NSString *timestamp = [RCTAppleHealthKit buildISO8601StringFromDate:location.timestamp];
-        NSNumber *distance = [NSNumber numberWithDouble:distCounter];
+        id distance = @{@"value": [NSNumber numberWithDouble:distCounter], @"unit":@"m"};
         index += 1;
         [locationData addObject:@{
             @"latitude": latitude,
@@ -897,21 +826,6 @@
         }];
     }
     
-//    [fullSerializedDictionary addEntriesFromDictionary:@{
-//        @"id": [[workoutSample UUID] UUIDString],
-//        @"startDateTime" : startDateString,
-//        @"endDateTime" : endDateString,
-//        @"activityName": type,
-//        @"activityType" : activityType,
-//        @"isUserEntered": @(isUserEntered),
-//        @"isFromWatch": @(isFromWatch),
-//        @"device": device,
-//        @"locations": locationData,
-//        @"metadata":metadata,
-//        @"sourceName" : [[[workoutSample sourceRevision] source] name],
-//        @"sourceType" : sourceType,
-//        @"sourceId" : [[[workoutSample sourceRevision] source] bundleIdentifier],
-//    }];
     [fullSerializedDictionary setObject:locationData forKey:@"locations"];
     
     return fullSerializedDictionary;

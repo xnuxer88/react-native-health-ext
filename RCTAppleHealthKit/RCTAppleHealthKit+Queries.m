@@ -1019,7 +1019,7 @@ API_AVAILABLE(ios(12.0))
                 for (HKWorkout * sample in results) {
                     double energy = [[sample totalEnergyBurned] doubleValueForUnit:[HKUnit kilocalorieUnit]];
                     double distance = [[sample totalDistance] doubleValueForUnit:[HKUnit mileUnit]];
-                    NSNumber *activityNumber =  [NSNumber numberWithInt: [sample workoutActivityType]];
+                    NSNumber *activityNumber =  [NSNumber numberWithInt:(int)sample.workoutActivityType];
 
                     NSString *activityName = [numberToWorkoutNameDictionary objectForKey: activityNumber];
 
@@ -1258,9 +1258,9 @@ API_AVAILABLE(ios(9.3))
 - (void)fetchWorkoutRouteHealthStore:(HKWorkout *)workoutSample
                           completion:(void (^)(NSArray<CLLocation *> *, NSError *))completion
 {
-    NSPredicate *workoutPredicate = [HKQuery predicateForObjectsFromWorkout:workoutSample];
     
     if (@available(iOS 11.0, *)) {
+        NSPredicate *workoutPredicate = [HKQuery predicateForObjectsFromWorkout:workoutSample];
         HKAnchoredObjectQuery *query = [[HKAnchoredObjectQuery alloc]
                                         initWithType:[HKSeriesType workoutRouteType]
                                         predicate:workoutPredicate
@@ -1410,7 +1410,7 @@ API_AVAILABLE(ios(9.3))
                             NSString *endDateStr =  [activeResult objectForKey:@"endDate"];
                             int calories = [[activeResult valueForKey:@"value"] intValue] + 0;
                             [dict setObject:@{
-                                @"value" : @(calories),
+                                @"value" : @(calories), // to sum using human's manual way for active energy burned + basal energy burned
                                 @"basal": @(0),
                                 @"active": @([[activeResult valueForKey:@"value"] doubleValue]),
                                 @"startDate" : startDateStr,
@@ -1428,7 +1428,7 @@ API_AVAILABLE(ios(9.3))
                                 NSString *endDateStr =  [basalResult objectForKey:@"endDate"];
                                 int calories = [active intValue] + [basal intValue];
                                 [dict setObject:@{
-                                    @"value" : @(calories),
+                                    @"value" : @(calories), // to sum using human's manual way for active energy burned + basal energy burned
                                     @"basal": @([basal doubleValue]),
                                     @"active": @([active doubleValue]),
                                     @"startDate" : startDateStr,
@@ -1440,7 +1440,7 @@ API_AVAILABLE(ios(9.3))
                                 NSString *endDateStr =  [basalResult objectForKey:@"endDate"];
                                 int calories = 0 + [basal intValue];
                                 [dict setObject:@{
-                                    @"value": @(calories),
+                                    @"value": @(calories), // to sum using human's manual way for active energy burned + basal energy burned
                                     @"basal": @([basal doubleValue]),
                                     @"active": @(0),
                                     @"startDate" : startDateStr,
