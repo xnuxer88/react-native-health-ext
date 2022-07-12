@@ -461,7 +461,7 @@ declare module 'react-native-health' {
 
   export interface HKWorkoutLocation {
     course:number
-    distance:number
+    distance:ValueUnit // {"unit":"m","value":1.4754369037229031},
     timestamp:string  //"2022-06-24T08:47:45.979+0700",
     speed: ValueUnit // { "unit":"m/s", "value":1.1444313526153564}
     longitude:number
@@ -469,22 +469,22 @@ declare module 'react-native-health' {
     horizontalAccuracy:number //3.512094736099243,
     verticalAccuracy:number //1.3269041776657104,
     courseAccuracy:number,
-    speedAccuracy:ValueUnit,
+    speedAccuracy:ValueUnit, // "speedAccuracy":{ "unit":"m/s", "value":0.3152034282684326 },
     altitude:number,
   }
 
   export interface HKWorkoutSampleType extends HealthSample {
     activityId: number
     activityName: string
-    totalEnergyBurned: ValueUnit
-    distance: ValueUnit
+    activeEnergyBurned: ValueUnit | null
+    distance: ValueUnit | null
     duration: ValueUnit
     isIndoorWorkout: boolean
     workoutEvents: Array<any>
   }
 
   export interface HKWorkoutRouteSampleType extends HKWorkoutSampleType {
-    locations: Array<any>
+    locations: Array<HKWorkoutLocation>
   }
 
   export interface ElectrocardiogramSampleValue extends BaseValue {

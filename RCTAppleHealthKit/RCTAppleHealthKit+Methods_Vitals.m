@@ -35,10 +35,10 @@
     }
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
     
-    if (includeManuallyAdded == false) {
-        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
-    }
+    // if (includeManuallyAdded == false) {
+    //     NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+    //     predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+    // }
     
 //    if (watchOnly) {
 //        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
