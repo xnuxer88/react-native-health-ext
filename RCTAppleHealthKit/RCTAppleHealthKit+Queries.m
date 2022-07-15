@@ -151,7 +151,7 @@
             dispatch_async(dispatch_get_main_queue(), ^{
 
                 for (HKQuantitySample *sample in results) {
-
+                        
                     HKQuantity *quantity = sample.quantity;
                     double value = [quantity doubleValueForUnit:unit];
 
@@ -666,6 +666,12 @@ API_AVAILABLE(ios(12.0))
                         @"endDate" : endDateString,
                         @"device" : device,
                         @"sourceType": sourceType,
+                        @"operatingSystemVersion": @{
+                            @"minor": @([[sample sourceRevision] operatingSystemVersion].minorVersion),
+                            @"major": @([[sample sourceRevision] operatingSystemVersion].majorVersion),
+                            @"patchVersion": @([[sample sourceRevision] operatingSystemVersion].patchVersion)
+                        },
+                        @"version": [[sample sourceRevision] version],
                         @"sourceName" : [[[sample sourceRevision] source] name] ?: [NSNull null],
                         @"metadata" : [sample metadata] ?: [NSNull null],
                         @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier] ?: [NSNull null],
@@ -930,7 +936,7 @@ API_AVAILABLE(ios(12.0))
 
     NSCalendar *calendar = [NSCalendar currentCalendar];
     NSDateComponents *interval = [[NSDateComponents alloc] init];
-    interval.minute = period;
+    interval.second = period;
 
     NSDateComponents *anchorComponents = [calendar components:NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond | NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear
                                                      fromDate:startDate];

@@ -406,6 +406,18 @@ RCT_EXPORT_METHOD(getVo2MaxSamples:(NSDictionary *)input resolve:(RCTPromiseReso
     }
 }
 
+RCT_EXPORT_METHOD(getLowCardioFitnessLowEvent:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+{
+    [self _initializeHealthStore];
+    if (@available(iOS 14.3, *)) {
+        [self vitals_getIdentifierLowCardioFitnessEventSamples:input resolver:resolve rejecter:reject];
+    } else {
+        // Fallback on earlier versions
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(data);
+    }
+}
+
 RCT_EXPORT_METHOD(getBodyTemperatureSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
 {
     [self _initializeHealthStore];

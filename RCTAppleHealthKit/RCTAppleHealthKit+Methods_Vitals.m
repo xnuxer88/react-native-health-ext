@@ -33,12 +33,12 @@
 //        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
-    NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
+    NSPredicate *predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
     
-    // if (includeManuallyAdded == false) {
-    //     NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
-    //     predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
-    // }
+//    if (includeManuallyAdded == false) {
+//        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+//    }
     
 //    if (watchOnly) {
 //        NSPredicate *watchOnlyPredicate = [RCTAppleHealthKit predicateWatchOnly];
@@ -499,6 +499,47 @@ API_AVAILABLE(ios(11.0))
             return;
         }
     }];
+}
+
+- (void)vitals_getIdentifierLowCardioFitnessEventSamples:(NSDictionary *)input
+                                                resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
+{
+    
+    NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
+    NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+        return;
+    }
+    
+    // day predicate
+    NSPredicate *predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
+    
+    // not include manual data
+//    if (includeManuallyAdded == false) {
+//        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+//    }
+
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+    
+    [self fetchCategorySamplesForPredicate:predicate
+                                          limit:limit
+                                      ascending:ascending
+                                watchOnly:watchOnly
+                                     completion:^(NSArray *results, NSError *error) {
+                                         if(results){
+                                             resolve(results);
+                                             return;
+                                         } else {
+                                             reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting low cardio fintess event samples: %@", error.localizedDescription], error);
+                                             return;
+                                         }
+                                     }];
+    
 }
 
 - (void)vitals_getOxygenSaturationSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback

@@ -78,6 +78,10 @@
     } else if ([@"AppleExerciseTime" isEqualToString: key] && systemVersion >= 9.3) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleExerciseTime];
     }
+    
+    if ([@"LowCardioFitnessEvent" isEqualToString:key]) {
+        return [HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierLowCardioFitnessEvent];
+    }
 
     // Nutrition Identifiers
     if ([@"Biotin" isEqualToString:key]) {

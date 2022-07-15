@@ -20,7 +20,7 @@
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
     BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    if(startDate == nil){
+    if(startDate == nil) {
         reject(@"Invalid Argument", @"startDate is required in options", nil);
         return;
     }
