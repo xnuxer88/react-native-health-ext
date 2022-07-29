@@ -12,7 +12,6 @@
 
 @implementation RCTAppleHealthKit (Methods_Sleep)
 
-
 - (void)sleep_getSleepSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
 {
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
@@ -29,10 +28,10 @@
     NSPredicate *predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
     
     // not include manual data
-    if (includeManuallyAdded == false) {
-        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
-    }
+//    if (includeManuallyAdded == false) {
+//        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
+//    }
 
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     

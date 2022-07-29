@@ -160,10 +160,10 @@ API_AVAILABLE(ios(11.0))
     
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
 
-    if (includeManuallyAdded == false) {
-        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
-        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
-    }
+//    if (includeManuallyAdded == false) {
+//        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+//    }
 
 
     [self fetchQuantitySamplesOfType:hrvType

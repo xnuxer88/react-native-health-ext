@@ -12,4 +12,5 @@
 
 - (void)sleep_getSleepSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject;
 
+
 @end

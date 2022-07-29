@@ -499,7 +499,7 @@ RCT_EXPORT_METHOD(saveBloodGlucoseSample:(NSDictionary *)input callback:(RCTResp
 RCT_EXPORT_METHOD(getSleepSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     [self _initializeHealthStore];
-    [self sleep_getSleepSamples:input resolver:resolve rejecter:reject];
+     [self sleep_getSleepSamples:input resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(getInfo:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)

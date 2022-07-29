@@ -1335,7 +1335,7 @@ API_AVAILABLE(ios(9.3))
             return;
         }
         
-        if (!workouts) {
+        if (!workouts || workouts.count == 0) {
             completion(@{
                 @"data": [NSArray array],
                 @"anchor": [NSNull null]
