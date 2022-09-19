@@ -8,7 +8,7 @@
 
 #import "RCTAppleHealthKit+Utils.h"
 #import "RCTAppleHealthKit+TypesAndPermissions.h"
-#import "OMHSerializer.h"
+//#import "OMHSerializer.h"
 #import "CoreLocation/CoreLocation.h"
 
 @implementation RCTAppleHealthKit (Utils)
@@ -703,16 +703,27 @@
      
      if (@available(iOS 10.0, *)) {
          if (workoutSample.totalSwimmingStrokeCount) {
-             NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalSwimmingStrokeCount];
-             [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalSwimmingStrokeCount doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalSwimmingStrokeCount"];
+//             NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalSwimmingStrokeCount];
+             HKQuantity *quantity = [workoutSample totalSwimmingStrokeCount];
+             NSArray *arrayWithSplitUnitAndValue = [quantity.description
+                                                       componentsSeparatedByCharactersInSet:[NSCharacterSet
+                                                          whitespaceCharacterSet]];
+             NSString *strokeUnit = arrayWithSplitUnitAndValue[1];
+             
+             [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalSwimmingStrokeCount doubleValueForUnit:[HKUnit unitFromString:strokeUnit]]],@"unit":strokeUnit} forKey:@"totalSwimmingStrokeCount"];
              
          }
      }
      
      if (@available(iOS 11.0, *)) {
          if (workoutSample.totalFlightsClimbed) {
-                 NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalFlightsClimbed];
-                 [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalFlightsClimbed doubleValueForUnit:[HKUnit unitFromString:unitString]]],@"unit":unitString} forKey:@"totalFlightsClimbed"];
+//            NSString *unitString = [OMHSerializer parseUnitFromQuantity:workoutSample.totalFlightsClimbed];
+             HKQuantity *quantityFlightsClimbed = [workoutSample totalFlightsClimbed];
+             NSArray *arrayWithSplitUnitAndValueFlightsClimbed = [quantityFlightsClimbed.description componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+             
+             NSString *flightClimbedUnit = arrayWithSplitUnitAndValueFlightsClimbed[1];
+             
+             [fullSerializedDictionary setObject:@{@"value":[NSNumber numberWithDouble:[workoutSample.totalFlightsClimbed doubleValueForUnit:[HKUnit unitFromString:flightClimbedUnit]]],@"unit":flightClimbedUnit} forKey:@"totalFlightsClimbed"];
          }
      }
      
