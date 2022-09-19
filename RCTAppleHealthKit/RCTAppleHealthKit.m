@@ -33,7 +33,7 @@ RCTAppleHealthKit *shared;
 
 @synthesize bridge = _bridge;
 
-bool hasListeners;
+static bool hasListeners;
 
 RCT_EXPORT_MODULE();
 
