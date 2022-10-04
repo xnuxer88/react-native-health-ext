@@ -28,10 +28,8 @@
         return [HKObjectType characteristicTypeForIdentifier:HKCharacteristicTypeIdentifierBiologicalSex];
     } else if ([@"BloodType" isEqualToString: key]) {
         return [HKObjectType characteristicTypeForIdentifier:HKCharacteristicTypeIdentifierBloodType];
-    } else if ([@"WaistCircumference" isEqualToString: key]) {
-        if (@available(iOS 11.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierWaistCircumference];
-        }
+    } else if ([@"WaistCircumference" isEqualToString: key] && systemVersion >= 11.0) {
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierWaistCircumference];
     }
 
     // Body Measurements
@@ -64,13 +62,9 @@
     } else if ([@"DistanceCycling" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceCycling];
     } else if ([@"DistanceSwimming" isEqualToString: key] && systemVersion >= 10.0) {
-        if (@available(iOS 10.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceSwimming];
-        }
-    } else if ([@"DistanceDownhillSnowSports" isEqualToString: key]) {
-        if (@available(iOS 11.2, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceDownhillSnowSports];
-        }
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceSwimming];
+    } else if ([@"DistanceDownhillSnowSports" isEqualToString: key] && systemVersion >= 11.2) {
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceDownhillSnowSports];
     } else if ([@"BasalEnergyBurned" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierBasalEnergyBurned];
     } else if ([@"ActiveEnergyBurned" isEqualToString: key]) {
@@ -80,19 +74,17 @@
     } else if ([@"NikeFuel" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierNikeFuel];
     } else if ([@"AppleStandTime" isEqualToString: key]) {
-        if (@available(iOS 13.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleStandTime];
-        }
-    } else if ([@"AppleExerciseTime" isEqualToString: key]) {
-        if (@available(iOS 9.3, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleExerciseTime];
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleStandTime];
+    } else if ([@"AppleExerciseTime" isEqualToString: key] && systemVersion >= 9.3) {
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleExerciseTime];
+    } else if ([@"DistanceWheelchair" isEqualToString: key]) {
+        if (@available(iOS 10.0, *)) {
+            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWheelchair];
         }
     }
     
-    if ([@"LowCardioFitnessEvent" isEqualToString:key]) {
-        if (@available(iOS 14.3, *)) {
-            return [HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierLowCardioFitnessEvent];
-        }
+    if ([@"LowCardioFitnessEvent" isEqualToString:key] && @available(iOS 14.3, *)) {
+        return [HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierLowCardioFitnessEvent];
     }
 
     // Nutrition Identifiers
@@ -180,25 +172,15 @@
     if ([@"HeartRate" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRate];
     } else if ([@"WalkingHeartRateAverage" isEqualToString: key]) {
-        if (@available(iOS 11.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierWalkingHeartRateAverage];
-        }
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierWalkingHeartRateAverage];
     } else if ([@"RestingHeartRate" isEqualToString: key]) {
-        if (@available(iOS 11.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierRestingHeartRate];
-        }
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierRestingHeartRate];
     } else if ([@"HeartRateVariability" isEqualToString: key]) {
-        if (@available(iOS 11.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRateVariabilitySDNN];
-        }
-    }  else if ([@"HeartbeatSeries" isEqualToString: key]) {
-        if (@available(iOS 13.0, *)) {
-            return [HKObjectType seriesTypeForIdentifier:HKDataTypeIdentifierHeartbeatSeries];
-        }
-    } else if ([@"Vo2Max" isEqualToString: key]) {
-        if (@available(iOS 11.0, *)) {
-            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierVO2Max];
-        }
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRateVariabilitySDNN];
+    }  else if ([@"HeartbeatSeries" isEqualToString: key] && systemVersion >= 13.0) {
+        return [HKObjectType seriesTypeForIdentifier:HKDataTypeIdentifierHeartbeatSeries];
+    } else if ([@"Vo2Max" isEqualToString: key] && systemVersion >= 11.0) {
+        return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierVO2Max];
     } else if ([@"BodyTemperature" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierBodyTemperature];
     } else if ([@"BloodPressureSystolic" isEqualToString: key]) {
@@ -209,12 +191,8 @@
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierRespiratoryRate];
     } else if ([@"OxygenSaturation" isEqualToString: key]) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierOxygenSaturation];
-    } else if ([@"Electrocardiogram" isEqualToString:key]) {
-        if (@available(iOS 14.0, *)) {
-            return HKObjectType.electrocardiogramType;
-        } else {
-            // Fallback on earlier versions
-        }
+    } else if ([@"Electrocardiogram" isEqualToString:key] && systemVersion >= 14.0) {
+        return HKObjectType.electrocardiogramType;
     }
 
     // Sleep
@@ -223,20 +201,14 @@
     }
 
     // workouts
-    if ([@"MindfulSession" isEqualToString: key]) {
-        if (@available(iOS 10.0, *)) {
-            return [HKObjectType categoryTypeForIdentifier:HKCategoryTypeIdentifierMindfulSession];
-        }
+    if ([@"MindfulSession" isEqualToString: key] && systemVersion >= 10.0) {
+        return [HKObjectType categoryTypeForIdentifier:HKCategoryTypeIdentifierMindfulSession];
     } else if ([@"MindfulSession" isEqualToString: key]){
         return [HKObjectType workoutType];
     } else if ([@"Workout" isEqualToString: key]) {
         return [HKObjectType workoutType];
     }  else if ([@"WorkoutRoute" isEqualToString:key]) {
-        if (@available(iOS 11.0, *)) {
-            return [HKSeriesType workoutRouteType];
-        } else {
-            // Fallback on earlier versions
-        }
+        return [HKSeriesType workoutRouteType];
     }
 
     // Lab and tests
@@ -246,9 +218,7 @@
     
     // Activity Summary
     if ([@"ActivitySummary" isEqualToString:key]){
-        if (@available(iOS 9.3, *)) {
-            return [HKObjectType activitySummaryType];
-        }
+        return [HKObjectType activitySummaryType];
     }
     
     // Clinical Records
