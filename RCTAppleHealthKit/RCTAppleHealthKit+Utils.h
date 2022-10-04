@@ -13,7 +13,7 @@
 + (NSDate *)parseISO8601DateFromString:(NSString *)date;
 + (NSString *)buildISO8601StringFromDate:(NSDate *)date;
 + (NSPredicate *)predicateForSamplesToday;
-+ (NSPredicate *)predicateIncludeWatch;
++ (NSPredicate *)predicateWatchOnly;
 + (NSPredicate *)predicateNotUserEntered;
 + (NSPredicate *)predicateToIgnoreDevices:(NSArray *)array;
 + (NSPredicate *)predicateForSamplesOnDay:(NSDate *)date;

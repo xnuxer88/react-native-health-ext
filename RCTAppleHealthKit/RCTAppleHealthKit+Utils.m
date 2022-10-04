@@ -8,7 +8,6 @@
 
 #import "RCTAppleHealthKit+Utils.h"
 #import "RCTAppleHealthKit+TypesAndPermissions.h"
-//#import "OMHSerializer.h"
 #import "CoreLocation/CoreLocation.h"
 
 @implementation RCTAppleHealthKit (Utils)
@@ -50,7 +49,7 @@
     return [RCTAppleHealthKit predicateForSamplesOnDay:now];
 }
 
-+ (NSPredicate *)predicateIncludeWatch {
++ (NSPredicate *)predicateWatchOnly {
     NSMutableSet *deviceModelAllowedValuesSet = [NSMutableSet setWithCapacity:1];
     [deviceModelAllowedValuesSet addObject:@"Watch"];
     

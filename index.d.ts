@@ -447,8 +447,7 @@ declare module 'react-native-health' {
     uuid?: string
     ascending?: boolean
     includeManuallyAdded?: boolean
-    includeWatch?: boolean
-    ignoredDevices?: Array<string>
+    watchOnly?: boolean
   }
 
   export interface HKWorkoutRouteInputOptions {

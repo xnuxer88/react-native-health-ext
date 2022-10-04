@@ -12,7 +12,7 @@
 
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventDispatcher.h>
-#import "OMHSerializer.h"
+// #import "OMHSerializer.h"
 #import <MapKit/MapKit.h>
 #import <CoreLocation/CoreLocation.h>
 
