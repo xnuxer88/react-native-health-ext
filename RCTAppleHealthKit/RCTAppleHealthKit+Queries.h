@@ -57,6 +57,15 @@
                              limit:(NSUInteger)lim
                         completion:(void (^)(NSArray *, NSError *))completion;
 
+- (void)fetchQuantitySamplesOfType:(HKQuantityType *)quantityType
+                              unit:(HKUnit *)unit
+                         predicate:(NSPredicate *)predicate
+                         ascending:(BOOL)asc
+                         watchOnly:(BOOL)watchOnly
+              includeManuallyAdded:(BOOL)includeManuallyAdded
+                             limit:(NSUInteger)lim
+                        completion:(void (^)(NSArray *, NSError *))completion;
+
 
 - (void)fetchQuantitySamplesOfTypeWithNoDevice:(HKQuantityType *)quantityType
                               unit:(HKUnit *)unit

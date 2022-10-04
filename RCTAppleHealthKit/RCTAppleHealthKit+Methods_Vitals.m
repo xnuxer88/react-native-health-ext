@@ -24,7 +24,7 @@
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
-//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
@@ -51,6 +51,8 @@
                                 unit:unit
                            predicate:predicate
                            ascending:ascending
+                           watchOnly:watchOnly
+                includeManuallyAdded:includeManuallyAdded
                                limit:limit
                           completion:^(NSArray *results, NSError *error) {
                               if(results){
@@ -149,7 +151,7 @@ API_AVAILABLE(ios(11.0))
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-//    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     
@@ -160,16 +162,13 @@ API_AVAILABLE(ios(11.0))
     
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
 
-//    if (includeManuallyAdded == false) {
-//        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
-//    }
-
 
     [self fetchQuantitySamplesOfType:hrvType
                                 unit:unit
                            predicate:predicate
                            ascending:ascending
+                           watchOnly:watchOnly
+                includeManuallyAdded:includeManuallyAdded
                                limit:limit
                           completion:^(NSArray *results, NSError *error) {
                               if(results){
@@ -368,6 +367,7 @@ API_AVAILABLE(ios(11.0))
         callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
         return;
     }
+    
     NSPredicate * predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
 
     [self fetchCorrelationSamplesOfType:bloodPressureCorrelationType

@@ -122,6 +122,86 @@
     [self.healthStore executeQuery:query];
 }
 
+- (void)fetchQuantitySamplesOfType:(HKQuantityType *)quantityType
+                              unit:(HKUnit *)unit
+                         predicate:(NSPredicate *)predicate
+                         ascending:(BOOL)asc
+                         watchOnly:(BOOL)watchOnly
+              includeManuallyAdded:(BOOL)includeManuallyAdded
+                             limit:(NSUInteger)lim
+                        completion:(void (^)(NSArray *, NSError *))completion {
+
+    NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate
+                                                                       ascending:asc];
+
+    // declare the block
+    void (^handlerBlock)(HKSampleQuery *query, NSArray *results, NSError *error);
+    // create and assign the block
+    handlerBlock = ^(HKSampleQuery *query, NSArray *results, NSError *error) {
+        if (error) {
+            completion(nil, error);
+            return;
+        }
+
+        if (completion) {
+            NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+
+                for (HKQuantitySample *sample in results) {
+
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
+                    if (!includeManuallyAdded && isUserEntered) {
+                        // if user doesn't want to get manual data input and the data is from manual input, then continue
+                        continue;
+                    }
+                    
+                    if (watchOnly && !isFromWatch) {
+                        // if user wanted to get watchonly source data and the data is not from watch, then continue
+                        continue;
+                    }
+                    HKQuantity *quantity = sample.quantity;
+                    double value = [quantity doubleValueForUnit:unit];
+
+                    NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
+                    NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
+
+                    NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
+
+                    id sourceType = [RCTAppleHealthKit getSourceType:sample];
+      
+                    NSDictionary *elem = @{
+                            @"value" : @(value),
+                            @"id" : [[sample UUID] UUIDString],
+                            @"sourceName" : [[[sample sourceRevision] source] name],
+                            @"sourceId" : [[[sample sourceRevision] source] bundleIdentifier],
+                            @"sourceType": sourceType,
+                            @"startDate" : startDateString,
+                            @"endDate" : endDateString,
+                            @"metadata": [sample metadata],
+                            @"device": device,
+                            @"isUserEntered": @(isUserEntered),
+                            @"isFromWatch": @(isFromWatch)
+                    };
+
+                    [data addObject:elem];
+                }
+
+                completion(data, error);
+            });
+        }
+    };
+
+    HKSampleQuery *query = [[HKSampleQuery alloc] initWithSampleType:quantityType
+                                                           predicate:predicate
+                                                               limit:lim
+                                                     sortDescriptors:@[timeSortDescriptor]
+                                                      resultsHandler:handlerBlock];
+
+    [self.healthStore executeQuery:query];
+}
+
 // for vo2max data (not returning device)
 - (void)fetchQuantitySamplesOfTypeWithNoDevice:(HKQuantityType *)quantityType
                               unit:(HKUnit *)unit
