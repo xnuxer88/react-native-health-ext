@@ -207,6 +207,10 @@
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount];
     } else if ([type isEqual:@"Workout"]) {
         return [HKObjectType workoutType];
+    } else if ([type isEqual:@"Wheelchair"]) {
+        if (@available(iOS 10.0, *)) {
+            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWheelchair];
+        }
     }
 
     return [HKObjectType workoutType];

@@ -396,6 +396,71 @@
                                       }];
 }
 
+- (void)fitness_getDailyDistanceWheelchairSamples:(NSDictionary *)input resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject
+    API_AVAILABLE(ios(10.0))
+{
+    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
+    NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
+
+    NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
+    NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60 * 60 * 24];
+    
+//    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+    
+    BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
+
+    if(startDate == nil){
+        reject(@"Invalid Argument", @"startDate is required in options", nil);
+//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+        return;
+    }
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@",
+                                            HKPredicateKeyPathEndDate, startDate,
+                                            HKPredicateKeyPathStartDate, endDate];
+
+    if (includeManuallyAdded == false) {
+        NSPredicate *includeManuallyAdded = [RCTAppleHealthKit predicateNotUserEntered];
+        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
+    }
+
+//    if (ignoredDevices != nil) {
+//        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+//        if(ignoredDevicesPredicate != nil) {
+//            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+//        }
+//    }
+
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
+        predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
+    }
+    
+
+    HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWheelchair];
+
+    [self fetchCumulativeSumStatisticsCollection:quantityType
+                                            unit:unit
+                                            period:period
+                                       predicate:predicate
+                                       startDate:startDate
+                                         endDate:endDate
+                                           limit:limit
+                                       ascending:ascending
+                                      completion:^(NSArray *results, NSError *err){
+                                          if (err != nil) {
+                                              reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting wheelchair distance: %@", err.localizedDescription], err);
+                                              return;
+                                          }
+                                            resolve(results);
+//                                          callback(@[[NSNull null], arr]);
+                                      }];
+}
+
+
 - (void)fitness_getDistanceCyclingOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
 {
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];

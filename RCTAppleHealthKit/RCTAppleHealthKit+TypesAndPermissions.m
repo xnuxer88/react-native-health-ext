@@ -77,6 +77,10 @@
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleStandTime];
     } else if ([@"AppleExerciseTime" isEqualToString: key] && systemVersion >= 9.3) {
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleExerciseTime];
+    } else if ([@"DistanceWheelchair" isEqualToString: key]) {
+        if (@available(iOS 10.0, *)) {
+            return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWheelchair];
+        }
     }
     
     if ([@"LowCardioFitnessEvent" isEqualToString:key] && @available(iOS 14.3, *)) {

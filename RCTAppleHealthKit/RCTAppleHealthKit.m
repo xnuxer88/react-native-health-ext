@@ -588,6 +588,17 @@ RCT_EXPORT_METHOD(getCaloriesBurned:(NSDictionary *)input resolve:(RCTPromiseRes
 }
 /*@yulianto.kevin end*/
 
+RCT_EXPORT_METHOD(getDistanceWheelchairSamples:(NSDictionary *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+{
+    [self _initializeHealthStore];
+    if (@available(iOS 10.0, *)) {
+        [self fitness_getDailyDistanceWheelchairSamples:input resolver:resolve rejecter:reject];
+    } else {
+        NSArray *data = [NSMutableArray arrayWithCapacity:1];
+        resolve(@[[NSNull null], data]);
+    }
+}
+
 
 - (HKHealthStore *)_initializeHealthStore {
   if(![self healthStore]) {

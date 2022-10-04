@@ -365,6 +365,8 @@ declare module 'react-native-health' {
       options: HealthInputOptions,
       callback: (err: string, results: Array<any>) => void,
     ): void
+
+    getDistanceWheelchair(options: HealthInputOptions): Promise<Array<HealthValue>>
     
     Constants: Constants
   }

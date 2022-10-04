@@ -78,4 +78,5 @@ export const Permissions = {
   Weight: 'Weight',
   Workout: 'Workout',
   WorkoutRoute: 'WorkoutRoute',
+  DistanceWheelchair: 'DistanceWheelchair',
 }
