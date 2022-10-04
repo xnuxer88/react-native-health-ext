@@ -79,7 +79,7 @@
         return [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleExerciseTime];
     }
     
-    if ([@"LowCardioFitnessEvent" isEqualToString:key]) {
+    if ([@"LowCardioFitnessEvent" isEqualToString:key] && @available(iOS 14.3, *)) {
         return [HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierLowCardioFitnessEvent];
     }
 
