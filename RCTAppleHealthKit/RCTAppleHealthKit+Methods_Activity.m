@@ -16,18 +16,18 @@
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
-    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60 * 60 * 24];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
-    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+//    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
         reject(@"Invalid Argument", @"startDate is required in options", nil);
-//        callback(@[RCTMakeError(@"startDate is required in options", nil, nil)]);
+
         return;
     }
     
@@ -40,15 +40,15 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (ignoredDevices != nil) {
-        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
-        if(ignoredDevicesPredicate != nil) {
-            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
-        }
-    }
+//    if (ignoredDevices != nil) {
+//        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+//        if(ignoredDevicesPredicate != nil) {
+//            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+//        }
+//    }
 
-    if (includeWatch) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
         predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
     }
 
@@ -63,11 +63,10 @@
                                       completion:^(NSArray *results, NSError *error) {
                                           if(results){
                                               resolve(results);
-//                                              callback(@[[NSNull null], results]);
+
                                               return;
                                           } else {
                                               NSLog(@"error getting active energy burned samples: %@", error);
-//                                              callback(@[RCTMakeError(@"error getting active energy burned samples:", error, nil)]);
                                               reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting active energy burned samples: %@", error.localizedDescription], error);
                                               return;
                                           }
@@ -79,13 +78,13 @@
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit kilocalorieUnit]];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
-    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60 * 60 * 24];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
-    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+//    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -103,15 +102,15 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
 
-    if (ignoredDevices != nil) {
-        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
-        if(ignoredDevicesPredicate != nil) {
-            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
-        }
-    }
+//    if (ignoredDevices != nil) {
+//        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+//        if(ignoredDevicesPredicate != nil) {
+//            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+//        }
+//    }
 
-    if (includeWatch) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
         predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
     }
 
@@ -126,11 +125,9 @@
                                       completion:^(NSArray *results, NSError *error) {
                                           if(results){
                                               resolve(results);
-//                                              callback(@[[NSNull null], results]);
                                               return;
                                           } else {
                                               NSLog(@"error getting basal energy burned samples: %@", error);
-//                                              callback(@[RCTMakeError(@"error getting basal energy burned samples:", error, nil)]);
                                               reject(@"ErrorCallback", [NSString stringWithFormat:@"error getting basal energy burned samples: %@", error.localizedDescription], error);
                                               return;
                                           }
@@ -143,13 +140,13 @@
     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit minuteUnit]];
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
-    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60];
+    NSUInteger period = [RCTAppleHealthKit uintFromOptions:input key:@"period" withDefault:60 * 60 * 24];
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
-    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
+//    NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -166,15 +163,15 @@
         predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[includeManuallyAdded]];
     }
     
-    if (ignoredDevices != nil) {
-        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
-        if(ignoredDevicesPredicate != nil) {
-            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
-        }
-    }
+//    if (ignoredDevices != nil) {
+//        NSPredicate *ignoredDevicesPredicate = [RCTAppleHealthKit predicateToIgnoreDevices:ignoredDevices];
+//        if(ignoredDevicesPredicate != nil) {
+//            predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[ignoredDevicesPredicate]];
+//        }
+//    }
 
-    if (includeWatch) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
         predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
     }
 
@@ -265,7 +262,7 @@
     NSArray *ignoredDevices = [RCTAppleHealthKit arrayFromOptions:input key:@"ignoredDevices" defaultValue:nil];
     
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
-    BOOL includeWatch = [RCTAppleHealthKit boolFromOptions:input key:@"includeWatch" withDefault:false];
+    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
 
     if(startDate == nil){
@@ -289,8 +286,8 @@
         }
     }
 
-    if (includeWatch) {
-        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateIncludeWatch];
+    if (watchOnly) {
+        NSPredicate *watchPredicate = [RCTAppleHealthKit predicateWatchOnly];
         predicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[watchPredicate]];
     }
     

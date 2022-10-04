@@ -24,6 +24,12 @@
                             predicate:(NSPredicate *)predicate
                            completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler;
 
+- (void)fetchSumOfSamplesOnDayForType:(HKQuantityType *)quantityType
+                                   unit:(HKUnit *)unit
+                          includeManuallyAdded:(BOOL)includeManuallyAdded
+                                   day:(NSDate *)day
+                           completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler;
+
 - (void)fetchSamplesOfType:(HKSampleType *)quantityType
                               unit:(HKUnit *)unit
                          predicate:(NSPredicate *)predicate
@@ -87,6 +93,14 @@
 //                                     ascending:(BOOL)asc
 //                                         limit:(NSUInteger)lim
 //                                    completion:(void (^)(NSArray *, NSError *))completionHandler;
+
+- (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+                                          unit:(HKUnit *)unit
+                                     startDate:(NSDate *)startDate
+                                       endDate:(NSDate *)endDate
+                                     ascending:(BOOL)asc
+                                         limit:(NSUInteger)lim
+                                    completion:(void (^)(NSArray *, NSError *))completionHandler;
 
 - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
                                           unit:(HKUnit *)unit
