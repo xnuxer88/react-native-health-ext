@@ -17,7 +17,7 @@
     NSDate *startDate = [RCTAppleHealthKit dateFromOptions:input key:@"startDate" withDefault:nil];
     NSDate *endDate = [RCTAppleHealthKit dateFromOptions:input key:@"endDate" withDefault:[NSDate date]];
     BOOL includeManuallyAdded = [RCTAppleHealthKit boolFromOptions:input key:@"includeManuallyAdded" withDefault:false];
-    BOOL watchOnly = [RCTAppleHealthKit boolFromOptions:input key:@"watchOnly" withDefault:false];
+    BOOL appleHealthOnly = [RCTAppleHealthKit boolFromOptions:input key:@"appleHealthOnly" withDefault:true];
     BOOL ascending = [RCTAppleHealthKit boolFromOptions:input key:@"ascending" withDefault:false];
     if(startDate == nil) {
         reject(@"Invalid Argument", @"startDate is required in options", nil);
@@ -27,18 +27,14 @@
     // day predicate
     NSPredicate *predicate = [RCTAppleHealthKit predicateForSamplesBetweenDates:startDate endDate:endDate];
     
-    // not include manual data
-//    if (includeManuallyAdded == false) {
-//        NSPredicate *manualDataPredicate = [RCTAppleHealthKit predicateNotUserEntered];
-//        predicate = [NSCompoundPredicate andPredicateWithSubpredicates:@[manualDataPredicate]];
-//    }
 
     NSUInteger limit = [RCTAppleHealthKit uintFromOptions:input key:@"limit" withDefault:HKObjectQueryNoLimit];
     
     [self fetchSleepCategorySamplesForPredicate:predicate
                                           limit:limit
                                       ascending:ascending
-                                watchOnly:watchOnly
+                           includeManuallyAdded:includeManuallyAdded
+                                appleHealthOnly:appleHealthOnly
                                      completion:^(NSArray *results, NSError *error) {
                                          if(results){
                                              resolve(results);

@@ -631,6 +631,18 @@
 
 + (bool)validateFromWatch:(HKSample *)sample {
     NSString *deviceModel = [[sample device] model];
+    NSString *sourceId = [[[sample sourceRevision] source] bundleIdentifier];
+    
+    
+    if ([sourceId rangeOfString:@"com.apple.health" options:NSCaseInsensitiveSearch].location == NSNotFound)
+    {
+        return false;
+    }
+    else
+    {
+        return [deviceModel isEqual:@"Watch"];
+    }
+    
 //    NSString *description = sample.description ?: @"";
 //    NSError *error = NULL;
 //    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bWatch\\b"

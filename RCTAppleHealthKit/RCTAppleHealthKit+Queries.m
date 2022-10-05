@@ -689,7 +689,8 @@ API_AVAILABLE(ios(12.0))
 - (void)fetchSleepCategorySamplesForPredicate:(NSPredicate *)predicate
                                         limit:(NSUInteger)lim
                                     ascending:(BOOL)asc
-                                    watchOnly:(BOOL)watchOnly
+                         includeManuallyAdded:(BOOL)includeManuallyAdded
+                              appleHealthOnly:(BOOL)appleHealthOnly
                                    completion:(void (^)(NSArray *, NSError *))completion {
 
     NSSortDescriptor *timeSortDescriptor = [[NSSortDescriptor alloc] initWithKey:HKSampleSortIdentifierEndDate
@@ -713,30 +714,23 @@ API_AVAILABLE(ios(12.0))
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 for (HKCategorySample *sample in results) {
-//                    NSString *description = sample.description ?: @"";
-//                    NSError *error = NULL;
+                    NSString *sourceId = [[[sample sourceRevision] source] bundleIdentifier];
                     
-//                    if (watchOnly) {
-//                        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\\bwatch\\b"
-//                                                                                               options:NSRegularExpressionCaseInsensitive
-//                                                                                                 error:&error];
-//
-//
-//                        NSInteger numberOfMatches = [regex numberOfMatchesInString:description
-//                                                                            options:0
-//                                                                              range:NSMakeRange(0, [description length])];
-//                        if (numberOfMatches <= 0) {
-//                            continue; // skip if the source data type is not from apple health
-//                        }
-//                    }
+                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
+                    if (!includeManuallyAdded && isUserEntered) {
+                        continue;
+                    }
+                    
+                    if (appleHealthOnly && [sourceId rangeOfString:@"com.apple.health" options:NSCaseInsensitiveSearch].location == NSNotFound)
+                    {
+                        continue;
+                    }
                     
 
                     NSString *startDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.startDate];
                     NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:sample.endDate];
                     
                     NSDictionary *device = [RCTAppleHealthKit serializeDevice:sample];
-                    // bool isFromWatch = [RCTAppleHealthKit validateFromWatch:sample];
-                    bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:sample];
                     id sourceType = [RCTAppleHealthKit getSourceType:sample];
                     
                     NSDictionary *elem = @{
@@ -1377,6 +1371,8 @@ API_AVAILABLE(ios(9.3))
                           anchor:(HKQueryAnchor *)anchor
                            limit:(NSUInteger)lim
                        ascending:(BOOL)ascending
+            includeManuallyAdded:(BOOL)includeManuallyAdded
+                       watchOnly:(BOOL)watchOnly
                       completion:(void (^)(NSDictionary *, NSError *))completion {
     
     [self fetchWorkoutsHealthStore:type
@@ -1389,7 +1385,32 @@ API_AVAILABLE(ios(9.3))
             return;
         }
         
-        if (!workouts || workouts.count == 0) {
+        if (!workouts) {
+            completion(@{
+                @"data": [NSArray array],
+                @"anchor": [NSNull null]
+            }, nil);
+            return;
+        }
+        
+        NSMutableArray<HKWorkout *> *validWorkouts = [NSMutableArray arrayWithCapacity:1];
+        
+        for (HKWorkout *workout in workouts) {
+            bool isFromWatch = [RCTAppleHealthKit validateFromWatch:workout];
+            bool isUserEntered = [RCTAppleHealthKit validateUserManualInput:workout];
+            if (!includeManuallyAdded && isUserEntered) {
+                continue;
+            }
+            
+            if (watchOnly && !isFromWatch) {
+                // if user wanted to get watchonly source data and the data is not from watch, then continue
+                continue;
+            }
+            
+            [validWorkouts addObject:workout];
+        }
+        
+        if (validWorkouts.count == 0) {
             completion(@{
                 @"data": [NSArray array],
                 @"anchor": [NSNull null]
@@ -1400,13 +1421,14 @@ API_AVAILABLE(ios(9.3))
         NSMutableArray *results = [NSMutableArray arrayWithCapacity:1];
         
         __block NSUInteger tally = 0;
-        
-        for (HKWorkout *workout in workouts) {
+                
+        for (HKWorkout *workout in validWorkouts) {
+            
             [self fetchWorkoutRouteHealthStore:workout
                 completion:^(NSArray<CLLocation *> *locations, NSError *error) {
                 tally += 1;
                 if (error) {
-                    if (tally == [workouts count]) {
+                    if (tally == [validWorkouts count]) {
                         completion(@{
                             @"data": results,
                             @"anchor": newAnchor
@@ -1419,7 +1441,7 @@ API_AVAILABLE(ios(9.3))
                 }
                 
                 [results addObject:[RCTAppleHealthKit serializeWorkoutRouteLocations:workout locations:locations]];
-                if (tally == [workouts count]) {
+                if (tally == [validWorkouts count]) {
                     completion(@{
                         @"data": results,
                         @"anchor": newAnchor

@@ -130,7 +130,8 @@
 - (void)fetchSleepCategorySamplesForPredicate:(NSPredicate *)predicate
                                    limit:(NSUInteger)lim
                                     ascending:(BOOL)asc
-                                    watchOnly:(BOOL)watchOnly
+                         includeManuallyAdded:(BOOL)includeManuallyAdded
+                              appleHealthOnly:(BOOL)appleHealthOnly
                                    completion:(void (^)(NSArray *, NSError *))completion;
 
 - (void)fetchWorkoutForPredicate:(NSPredicate *)predicate
@@ -157,6 +158,8 @@
                        anchor:(HKQueryAnchor *)anchor
                         limit:(NSUInteger)lim
                        ascending:(BOOL)ascending
+            includeManuallyAdded:(BOOL)includeManuallyAdded
+                       watchOnly:(BOOL)watchOnly
                       completion:(void (^)(NSDictionary *, NSError *))completion;
 
 - (void)fetchWorkoutRouteHealthStore: (HKWorkout *)workout
